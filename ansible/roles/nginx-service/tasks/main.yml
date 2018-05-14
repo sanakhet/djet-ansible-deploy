@@ -1,0 +1,13 @@
+---
+
+- name: Copy our nginx systemd service config
+  copy:
+    src: files/nginx.service
+    dest: /etc/systemd/system/nginx.service
+
+- name: Enable nginx service
+  systemd:
+    name: nginx
+    daemon_reload: yes
+    enabled: yes
+

@@ -1,0 +1,32 @@
+---
+
+- name: Update apt packages
+  apt:
+    update_cache: yes
+    upgrade: yes
+
+- name: Ensure latest list of required packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - cmake
+    - build-essential
+    - pkg-config
+    - libssl-dev
+    - libbz2-dev
+    - unzip
+    - locate
+    - autoconf
+    - apache2-utils
+    - sysstat
+    - ntp
+    - git
+    - g++
+    - vim
+    - screen
+    - libevent-dev
+    - libpcre3-dev
+    - xz-utils
+    - htop
+

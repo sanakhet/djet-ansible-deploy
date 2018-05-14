@@ -1,0 +1,34 @@
+
+# defaults
+deployment_resource_dir: /usr/local/src/ansible-files
+
+# blah
+nginx_version: nginx-1.14.0
+nginx_download_url: http://192.168.0.151/{{ nginx_version }}.tar.gz
+nginx_install_prefix: /usr/local/nginx
+nginx_sbin_path: /usr/sbin/nginx
+nginx_conf_path: /usr/local/nginx/conf/nginx.conf
+nginx_custom_modules: "--with-debug --with-http_ssl_module --with-http_v2_module --with-http_stub_status_module --with-file-aio --with-threads"
+
+php7_version: php-7.2.5
+php7_download_url: http://192.168.0.151/{{ php7_version }}.tar.xz # http://ca1.php.net/get/php-7.2.5.tar.gz/from/this/mirror
+php7_install_prefix: /usr/local/php7
+php7_extension_dir: /usr/local/php7/modules
+php7_ini_path: /usr/local/php7/lib/php.ini
+php7_custom_modules: "--with-gd --with-mysqli --with-zlib --enable-inline-optimization --with-gettext --with-pspell --with-curl --enable-mbstring --with-jpeg-dir=/usr/lib --with-freetype-dir=/usr --with-tidy --enable-soap --enable-zip --with-openssl --enable-bcmath --enable-opcache --with-pdo-mysql=mysqlnd --enable-pcntl --enable-fpm --with-libzip"
+php7_pecl_inotify_version: inotify
+php7_pecl_memcached_version: memcached
+php7_pecl_rdkafka_version: rdkafka
+
+memcached_version: memcached-1.5.7
+memcached_download_url: http://192.168.0.151/{{ memcached_version }}.tar.gz # https://memcached.org/files/memcached-1.5.7.tar.gz
+memcached_install_prefix: /usr/local/memcached
+
+mysql_version: Percona-Server-5.7.21-21-Linux.x86_64.ssl102
+mysql_download_url: http://192.168.0.151/{{ mysql_version }}.tar.gz # https://www.percona.com/downloads/Percona-Server-LATEST/Percona-Server-5.7.21-21/binary/tarball/Percona-Server-5.7.21-21-Linux.x86_64.ssl102.tar.gz
+mysql_install_prefix: /usr/local/mysql
+mysql_data_dir: /var/local/mysql/data
+mysql_conf_path: /etc/mysql/my.cnf
+
+
+

@@ -1,0 +1,26 @@
+---
+
+- hosts: development
+  remote_user: sanakhet
+  become: yes
+  become_method: sudo
+  become_user: root
+
+  roles:
+    #- apt-core
+    #- nginx-install
+    #- nginx-config
+    #- nginx-service
+
+    #- php7-install
+    #- php7-config
+    #- php7-fpm-config
+    #- php7-fpm-service
+
+    #- memcached-install
+    #- memcached-config
+    #- memcached-service
+
+    - mysql-install
+    - mysql-config
+    - mysql-service

@@ -1,0 +1,14 @@
+[Unit]
+Description=NGINX Web Server
+After=network.target syslog.target
+
+[Service]
+Type=forking
+PIDFile=/var/run/nginx.pid
+ExecStart=/usr/local/nginx/sbin/nginx
+ExecReload=/usr/local/nginx/sbin/nginx -s reload
+ExecStop=/usr/local/nginx/sbin/nginx -s quit
+
+[Install]
+WantedBy=multi-user.target
+

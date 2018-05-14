@@ -1,0 +1,14 @@
+---
+
+- name: Copy our mysql systemd service config
+  copy:
+    src: files/mysql.service
+    dest: /etc/systemd/system/mysql.service
+
+- name: Enable mysql service
+  systemd:
+    name: mysql
+    daemon_reload: yes
+    enabled: yes
+
+

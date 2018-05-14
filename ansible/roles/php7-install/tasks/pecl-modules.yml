@@ -1,0 +1,32 @@
+---
+
+- name: Prepare PECL default extension directory location
+  command: "{{ php7_install_prefix }}/bin/pecl config-set ext_dir {{ php7_extension_dir }}"
+
+- name: Prepare PECL default php ini location
+  command: "{{ php7_install_prefix }}/bin/pecl config-set php_ini {{ php7_ini_path }}"
+
+- name: Install inotify
+  command: "{{ php7_install_prefix }}/bin/pecl install {{ php7_pecl_inotify_version }}"
+  ignore_errors: true
+
+- name: Install memcached
+  command: "{{ php7_install_prefix }}/bin/pecl install {{ php7_pecl_memcached_version }}"
+  ignore_errors: true
+
+#- name: Install rdkafka
+#  command: "{{ php7_install_prefix }}/bin/pecl install {{ php7_pecl_rdkafka_version }}"
+#  ignore_errors: true
+
+#- name: Add the opcache extension to php.ini
+#  lineinfile: dest={{ php7_ini_path }} line="zend_extension=opcache.so" insertafter=EOF
+
+- name: Add the inotify extension to php.ini
+  lineinfile: dest={{ php7_ini_path }} line="extension=inotify.so" insertafter=EOF
+
+- name: Add the memcached extension to php.ini
+  lineinfile: dest={{ php7_ini_path }} line="extension=memcached.so" insertafter=EOF
+
+#- name: Add the rdkafka extension to php.ini
+#  lineinfile: dest={{ php7_ini_path }} line="extension=rdkafka.so" insertafter=EOF
+

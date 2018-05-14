@@ -1,0 +1,33 @@
+
+/var/log/nginx/*.log {
+    # Rotate the logs daily.
+    daily
+
+    # Ignore file-not-found errors, in case log file isn't there.
+    missingok
+
+    # Rotate a log at most N times.
+    rotate 7
+
+    # Compress the rotated logs.
+    compress
+
+    # Delay the compression of rotated logs by 1 rotation.
+    delaycompress
+
+    # Do not rotate empty log files.
+    notifempty
+
+    # Permissions to create the log rotated files with.
+    create 640 root staff
+
+    # If this is set, the postrotate script below is executed ONLY ONCE regardless of how many .log files there are.
+    # (this is good)
+    sharedscripts
+
+    # kill -USR1 signal causes NGINX to begin logging again after rotation causes it to stop.
+    postrotate
+        [ ! -f /var/run/nginx.pid ] || kill -USR1 `cat /var/run/nginx.pid`
+    endscript
+}
+

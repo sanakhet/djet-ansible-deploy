@@ -1,0 +1,14 @@
+---
+
+- name: Copy our memcached systemd service config
+  copy:
+    src: files/memcached.service
+    dest: /etc/systemd/system/memcached.service
+
+- name: Enable memcached service
+  systemd:
+    name: memcached
+    daemon_reload: yes
+    enabled: yes
+
+

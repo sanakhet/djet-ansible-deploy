@@ -1,0 +1,13 @@
+---
+
+- name: Copy our nginx conf files
+  template: src=files/{{ item }}.j2 dest=/usr/local/nginx/conf/{{ item }} force=yes
+  with_items:
+    - nginx.conf
+      #- adbutler-com.conf
+      #- adbutler-adserver.conf
+      #- adbutler-server-status.conf
+
+- name: Copy our nginx.logrotate.conf settings file
+  template: src=files/nginx.logrotate.conf.j2 dest=/etc/logrotate.d/nginx.logrotate.conf force=yes
+

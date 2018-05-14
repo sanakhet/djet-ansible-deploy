@@ -1,0 +1,77 @@
+---
+
+#
+# Check
+#
+
+- name: Install necessary packages
+  apt: name={{ item }} state=present
+  with_items:
+    - libssl-dev
+    - libpcre3-dev
+    - zlib1g-dev
+
+- name: Check if we've already downloaded nginx
+  stat: path=/usr/src/{{ nginx_version }}.tar.gz
+  register: nginx_file_check
+
+- name: Check if we've already extracted nginx
+  stat: path=/usr/src/{{ nginx_version }}
+  register: nginx_extract_check
+
+#- name: Check if symlink exists
+#  stat: path=/usr/sbin/nginx
+#  register: nginx_symlink_check
+
+#
+# Deploy
+#
+
+- name: Download nginx
+  get_url:
+    url: "{{ nginx_download_url }}"
+    dest: "/usr/src/{{ nginx_version }}.tar.gz"
+  when: nginx_file_check.stat.exists == false
+
+- name: Remove extracted nginx if it exists
+  file:
+    path: /usr/src/{{ nginx_version }}
+    state: absent
+  when: nginx_extract_check.stat.exists == true
+
+- name: Extract nginx
+  unarchive: 
+    src: /usr/src/{{ nginx_version }}.tar.gz
+    dest: /usr/src
+    creates: /usr/src/{{ nginx_version }}
+    copy: no
+    owner: root
+    group: root
+
+- name: Configure
+  shell: "./configure --prefix={{ nginx_install_prefix }} --user=nobody --group=www-data --conf-path={{ nginx_conf_path }} --sbin-path={{ nginx_sbin_path }} {{ nginx_custom_modules }}"
+  args:
+    chdir: /usr/src/{{ nginx_version }}
+
+- name: Running make, this might take a bit
+  command: chdir=/usr/src/{{ nginx_version }} make
+
+#- name: Stop nginx if it's running before doing make install
+#  shell: nginx -s stop; sleep 1
+#  ignore_errors: yes
+  # TODO swtich this to "service nginx stop" when reliability is good enough
+
+- name: Running make install
+  command: chdir=/usr/src/{{ nginx_version }} make install
+
+#- name: Destroy the old symlink if it exists
+#  file: path=/usr/sbin/nginx state=absent
+#  when: nginx_symlink_check.stat.exists == true
+
+#- name: Create the symlink
+#  file: src=/usr/local/nginx/sbin/nginx dest=/usr/sbin/nginx state=link
+
+- name: Set up log dir permissions (any existing ones too)
+  file: path=/var/log/nginx group=www-data mode="g+w" recurse=yes state=directory
+
+

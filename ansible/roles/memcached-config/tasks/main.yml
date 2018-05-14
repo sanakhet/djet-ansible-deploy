@@ -1,0 +1,5 @@
+---
+
+- name: Copy the memcached config
+  template: src=files/memcached.conf.j2 dest={{ memcached_install_prefix }}/memcached.conf force=yes
+

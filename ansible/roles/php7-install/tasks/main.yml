@@ -1,0 +1,81 @@
+---
+
+#
+# Check
+#
+
+- name: Install necessary packages
+  apt: name={{ item }} state=present
+  with_items:
+    - libbz2-dev
+    - libcrypto++-dev
+    - libcurl4-openssl-dev
+    - libfcgi-dev
+    - libfreetype6-dev
+    - libjpeg-dev
+    - libmcrypt-dev
+    - libmemcached-dev
+    - libpng-dev
+    - libpspell-dev
+    - libreadline-dev
+    - libssl-dev
+    - libtidy-dev
+    - libxml2-dev
+    - autoconf
+
+- name: Check if we've already downloaded PHP
+  stat: path=/usr/src/{{ php7_version }}.tar.xz
+  register: php7_file_check
+
+- name: Check if we've already extracted PHP
+  stat: path=/usr/src/{{ php7_version }}
+  register: php7_extract_check
+
+#
+# Run
+#
+
+- name: Download {{ php7_version }}
+  get_url:
+    url: "{{ php7_download_url }}"
+    dest: /usr/src/{{ php7_version }}.tar.xz
+  when: php7_file_check.stat.exists == false
+
+- name: Remove extracted PHP if it exists
+  file:
+    path: /usr/src/{{ php7_version }}
+    state: absent
+  when: php7_extract_check.stat.exists == true
+
+- name: Extract PHP
+  unarchive:
+    src: /usr/src/{{ php7_version }}.tar.xz
+    dest: /usr/src
+    creates: /usr/src/{{ php7_version }}
+    copy: no
+    owner: root
+    group: root
+
+- name: Create the PHP modules directory
+  file: path={{ php7_extension_dir }} state=directory
+
+- name: Configure
+  shell: EXTENSION_DIR={{ php7_extension_dir }} ./configure --prefix={{ php7_install_prefix }} {{ php7_custom_modules }}
+  args:
+    chdir: /usr/src/{{ php7_version }}
+
+- name: "make (WARNING: THIS WILL TAKE A LONG TIME)"
+  command: chdir=/usr/src/{{ php7_version }} make
+
+- name: make install
+  command: chdir=/usr/src/{{ php7_version }} make install
+
+- name: Set up log dir permissions (any existing ones too)
+  file: path=/var/log/php7 group=www-data mode="g+w" recurse=yes state=directory
+
+# THIS MUST HAPPEN BEFORE PECL SET UP
+#- name: Copy our production php.ini for PECL module install
+#  template: src=files/php.ini.j2 dest={{ php7_ini_path }} force=yes
+
+#- include: pecl-modules.yml
+

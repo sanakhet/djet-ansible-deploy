@@ -1,0 +1,8 @@
+---
+
+- name: Copy our default version of php-fpm.conf
+  copy: src=files/php-fpm.conf dest={{ php7_install_prefix }}/etc/php-fpm.conf force=yes
+
+- name: Copy the connection pool www.conf
+  copy: src=files/www.conf dest={{ php7_install_prefix }}/etc/php-fpm.d/www.conf force=yes
+

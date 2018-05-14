@@ -1,0 +1,126 @@
+---
+
+#
+# Check
+#
+
+- name: Install needed packages for mysql
+  apt: name={{ item }} state=present
+  with_items:
+    - libaio1
+    - numactl
+
+- name: Check percona server has been downloaded
+  stat: path=/usr/src/{{ mysql_version }}.tar.gz
+  register: mysql_file_check
+
+- name: Check if we've already extracted mysql
+  stat: path=/usr/src/{{ mysql_version }}
+  register: mysql_extract_check
+
+- name: Check if user exists
+  shell: if getent passwd mysql >/dev/null 2>&1; then echo "yes"; else echo "no"; fi
+  register: mysql_user_check
+
+- name: Check if symlink exists
+  stat: path={{ mysql_install_prefix }}
+  register: mysql_symlink_check
+
+#
+# Install
+#
+
+- name: Download mysql
+  get_url:
+    url: "{{ mysql_download_url }}"
+    dest: "/usr/src/{{ mysql_version }}.tar.gz"
+  when: mysql_file_check.stat.exists == false
+
+- name: Remove extracted mysql if it exists
+  file:
+    path: /usr/local/{{ mysql_version }}
+    state: absent
+  when: mysql_extract_check.stat.exists == true
+
+- name: Extract mysql
+  unarchive:
+    src: /usr/src/{{ mysql_version }}.tar.gz
+    dest: /usr/local
+    #creates: /usr/local/{{ mysql_version }}
+    copy: no
+    owner: root
+    group: root
+
+- name: Destroy the old symlink
+  file: path={{ mysql_install_prefix }} state=absent
+  when: mysql_symlink_check.stat.exists == true
+
+- name: Create the symlink
+  file: src=/usr/local/{{ mysql_version }} dest={{ mysql_install_prefix }} state=link
+
+- name: Create a sandbox user
+  shell: adduser --system --no-create-home --disabled-login --disabled-password --group mysql
+  when: mysql_user_check.stdout == "no"
+
+- name: Add mysql/bin to the default /etc/profile PATH
+  shell: echo "export PATH=\"{{ mysql_install_prefix }}/bin:\$PATH\"" >> /etc/profile
+
+- name: Add mysql/bin to root PATH in ~/.bashrc
+  shell: echo "export PATH=\"{{ mysql_install_prefix }}/bin:\$PATH\"" >> /root/.bashrc
+
+- name: Add mysql to the current user PATH just in case
+  shell: export PATH="{{ mysql_install_prefix }}/bin:$PATH"
+
+
+
+
+
+LEFT OFF - NEED TO REMOVE DATA DIR AS PART OF DEPLOYMENT PROCESS
+
+
+
+
+
+
+- name: Set up our data dir
+  file: path={{ mysql_data_dir }} owner=mysql group=mysql mode="g+w" recurse=yes state=directory
+
+- name: Initialize mysql to set up defaults (not for production!!)
+  shell: bin/mysqld --initialize-insecure --user=mysql --datadir={{ mysql_data_dir }} --explicit_defaults_for_timestamp chdir={{ mysql_install_prefix }}
+
+- name: Set up mysql SSL support
+  shell: bin/mysql_ssl_rsa_setup --datadir={{ mysql_data_dir }} chdir={{ mysql_install_prefix }}
+
+- name: Finalize permissions and restrict to mysql
+  file:
+    path: "{{ mysql_install_prefix }}"
+    owner: root
+    group: mysql
+    recurse: yes
+
+- name: Prepare the mysql config location
+  file:
+    path: /etc/mysql
+    state: directory
+
+- name: Create a default my.cnf
+  file:
+    path: /etc/mysql/my.cnf
+    state: touch
+
+# todo review this task
+- name: Ensure that mysql's log dir exists
+  file: path=/var/log/mysql state=directory mode="u+rwX,g+rwX,o+rwX"
+
+
+
+
+
+
+
+
+
+
+
+
+
