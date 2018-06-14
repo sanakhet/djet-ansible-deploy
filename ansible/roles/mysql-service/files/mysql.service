@@ -8,7 +8,7 @@ After=network.target syslog.target
 [Service]
 Type=forking
 PIDFile=/var/run/mysql.pid
-ExecStart=/usr/local/mysql/bin/mysqld --daemonize --pid-file=/var/run/mysql.pid --basedir=/usr/local/mysql --datadir=/data --plugin-dir=/usr/local/mysql/lib/mysql/plugin --user=root --open-files-limit=32768 --socket=/tmp/mysql.sock --port=3306
+ExecStart=/usr/local/mysql/bin/mysqld --daemonize --pid-file=/var/run/mysql.pid --basedir=/usr/local/mysql --datadir=/var/local/mysql/data --plugin-dir=/usr/local/mysql/lib/mysql/plugin --user=root --open-files-limit=32768 --socket=/tmp/mysql.sock --port=3306
 Restart=on-failure
 RestartPreventExitStatus=1
 PrivateTmp=false
