@@ -1,5 +1,6 @@
 
 # defaults
+host_key_checking: false # for testing
 deployment_resource_dir: /usr/local/src/ansible-files
 
 # blah
