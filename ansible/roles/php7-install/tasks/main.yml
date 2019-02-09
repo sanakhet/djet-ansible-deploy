@@ -45,7 +45,7 @@
 
 - name: Copy php {{ php7_version }}
   copy: src={{ deployment_resource_dir }}/php-{{ php7_version }}.tar.gz dest=/usr/local/src/php-{{ php7_version }}.tar.gz
-  when: nginx_file_check.stat.exists == false
+  when: php7_file_check.stat.exists == false
 
 - name: Remove extracted PHP if it exists
   file:

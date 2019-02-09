@@ -20,7 +20,7 @@
 
 - name: Copy php {{ memcached_version }}
   copy: src={{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz dest=/usr/local/src/memcached-{{ memcached_version }}.tar.gz
-  when: nginx_file_check.stat.exists == false
+  when: memcached_file_check.stat.exists == false
 
 - name: Unzip memcached archive
   unarchive:
