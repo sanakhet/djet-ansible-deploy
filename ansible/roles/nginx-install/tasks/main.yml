@@ -37,7 +37,7 @@
 #  when: nginx_file_check.stat.exists == false
 
 - name: Copy nginx {{ nginx_version }}
-  copy: src={{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz dest=/usr/src/nginx-{{ nginx_version }}.tar.gz
+  copy: src={{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz dest=/usr/local/src/nginx-{{ nginx_version }}.tar.gz
   when: nginx_file_check.stat.exists == false
 
 - name: Remove extracted nginx if it exists
