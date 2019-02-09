@@ -5,23 +5,25 @@
 #
 
 - name: Install necessary packages
-  apt: name={{ item }} state=present
-  with_items:
-    - libbz2-dev
-    - libcrypto++-dev
-    - libcurl4-openssl-dev
-    - libfcgi-dev
-    - libfreetype6-dev
-    - libjpeg-dev
-    - libmcrypt-dev
-    - libmemcached-dev
-    - libpng-dev
-    - libpspell-dev
-    - libreadline-dev
-    - libssl-dev
-    - libtidy-dev
-    - libxml2-dev
-    - autoconf
+  apt: name="{{ packages }}" state=latest
+  vars:
+    packages:
+      - libbz2-dev
+      - libcrypto++-dev
+      - libcurl4-openssl-dev
+      - libfcgi-dev
+      - libfreetype6-dev
+      - libjpeg-dev
+      - libmcrypt-dev
+      - libmemcached-dev
+      - libpng-dev
+      - libpspell-dev
+      - libreadline-dev
+      - libssl-dev
+      - libtidy-dev
+      - libxml2-dev
+      - autoconf
+      - libzip-dev
 
 - name: Check if we've already downloaded PHP
   stat: path=/usr/local/src/{{ php7_version }}.tar.xz

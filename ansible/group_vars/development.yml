@@ -12,7 +12,7 @@ nginx_conf_path: /usr/local/nginx/conf/nginx.conf
 nginx_custom_modules: "--with-debug --with-http_ssl_module --with-http_v2_module --with-http_stub_status_module --with-file-aio --with-threads"
 
 php7_version: php-7.3.1
-php7_download_url: http://192.168.0.207/{{ php7_version }}.tar.xz # http://ca1.php.net/get/php-7.2.5.tar.gz/from/this/mirror
+php7_download_url: http://192.168.0.207/{{ php7_version }}.tar.xz # http://ca1.php.net/get/php-7.3.2.tar.gz/from/this/mirror
 php7_install_prefix: /usr/local/php7
 php7_extension_dir: /usr/local/php7/modules
 php7_ini_path: /usr/local/php7/lib/php.ini
@@ -21,8 +21,8 @@ php7_pecl_inotify_version: inotify
 php7_pecl_memcached_version: memcached
 php7_pecl_rdkafka_version: rdkafka
 
-memcached_version: memcached-1.5.7
-memcached_download_url: http://192.168.0.207/{{ memcached_version }}.tar.gz # https://memcached.org/files/memcached-1.5.7.tar.gz
+memcached_version: memcached-1.5.12
+memcached_download_url: http://192.168.0.207/{{ memcached_version }}.tar.gz # https://memcached.org/files/memcached-1.5.12.tar.gz
 memcached_install_prefix: /usr/local/memcached
 
 mysql_version: Percona-Server-8.0.13-4-Linux.x86_64.ssl102
