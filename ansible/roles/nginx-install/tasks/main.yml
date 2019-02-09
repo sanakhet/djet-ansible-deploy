@@ -22,13 +22,9 @@
   stat: path=/usr/local/nginx-{{ nginx_version }}
   register: nginx_extract_check
 
-#- name: Check if install dir symlink exists
-#  stat: path={{ nginx_install_prefix }}
-#  register: nginx_install_symlink_check
-
-#- name: Check if sbin symlink exists
-#  stat: path=/usr/sbin/nginx
-#  register: nginx_sbin_symlink_check
+- name: Check if sbin symlink exists
+  stat: path={{ nginx_sbin_path }}
+  register: nginx_sbin_symlink_check
 
 #
 # BUILD NGINX
@@ -67,34 +63,28 @@
 - name: Running make, this might take a bit
   command: chdir=/usr/local/nginx-{{ nginx_version }} make
 
-#- name: Stop nginx if it's running before doing make install
-#  shell: nginx -s stop; sleep 1
-#  ignore_errors: yes
+- name: Stop nginx if it's running before doing make install
+  shell: service nginx stop
+  #shell: nginx -s stop; sleep 1
+  ignore_errors: yes
   # TODO swtich this to "service nginx stop" when reliability is good enough
 
 - name: Running make install
   command: chdir=/usr/local/nginx-{{ nginx_version }} make install
 
 #
-# HANDLE SYMLINKX
+# SYMLINKX
 #
 
-#- name: Destroy the old install dir symlink if it exists
-#  file: path=/usr/local/nginx state=absent
-#  when: nginx_install_symlink_check.stat.exists == true
+- name: Destroy the sbin dir symlink if it exists
+  file: path={{ nginx_sbin_path }} state=absent
+  when: nginx_sbin_symlink_check.stat.exists == true
 
-#- name: Destroy the sbin dir symlink if it exists
-#  file: path=/usr/sbin/nginx state=absent
-#  when: nginx_sbin_symlink_check.stat.exists == true
-
-#- name: Create the install dir symlink
-#  file: src=/usr/local/nginx-{{ nginx_version }} dest=/usr/local/nginx state=link
-
-#- name: Create the symlink
-#  file: src={{ nginx_install_prefix }}/sbin/nginx dest={{ nginx_sbin_path }} state=link
+- name: Create the symlink
+  file: src={{ nginx_install_prefix }}/sbin/nginx dest={{ nginx_sbin_path }} state=link
 
 #
-# SET UP LOG DIR
+# LOGDIR
 #
 
 - name: Set up log dir permissions (any existing ones too)
