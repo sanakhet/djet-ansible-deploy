@@ -1,7 +1,7 @@
 ---
 
 #
-# Check
+# SETUP
 #
 
 - name: Install necessary packages
@@ -19,15 +19,19 @@
   register: nginx_file_check
 
 - name: Check if we've already extracted nginx
-  stat: path=/usr/local/src/nginx-{{ nginx_version }}
+  stat: path=/usr/local/nginx-{{ nginx_version }}
   register: nginx_extract_check
 
-#- name: Check if symlink exists
-#  stat: path=/usr/sbin/nginx
-#  register: nginx_symlink_check
+- name: Check if install dir symlink exists
+  stat: path={{ nginx_install_prefix }}
+  register: nginx_install_symlink_check
+
+- name: Check if sbin symlink exists
+  stat: path=/usr/sbin/nginx
+  register: nginx_sbin_symlink_check
 
 #
-# Deploy
+# BUILD NGINX
 #
 
 #- name: Download nginx
@@ -42,15 +46,15 @@
 
 - name: Remove extracted nginx if it exists
   file:
-    path: /usr/local/src/nginx-{{ nginx_version }}
+    path: /usr/local/nginx-{{ nginx_version }}
     state: absent
   when: nginx_extract_check.stat.exists == true
 
 - name: Extract nginx
   unarchive: 
     src: /usr/local/src/nginx-{{ nginx_version }}.tar.gz
-    dest: /usr/local/src
-    creates: /usr/local/src/nginx-{{ nginx_version }}
+    dest: /usr/local
+    creates: /usr/local/nginx-{{ nginx_version }}
     copy: no
     owner: root
     group: root
@@ -58,10 +62,10 @@
 - name: Configure
   shell: "./configure --prefix={{ nginx_install_prefix }} --user=nobody --group=www-data --conf-path={{ nginx_conf_path }} --sbin-path={{ nginx_sbin_path }} {{ nginx_custom_modules }}"
   args:
-    chdir: /usr/local/src/nginx-{{ nginx_version }}
+    chdir: /usr/local/nginx-{{ nginx_version }}
 
 - name: Running make, this might take a bit
-  command: chdir=/usr/local/src/nginx-{{ nginx_version }} make
+  command: chdir=/usr/local/nginx-{{ nginx_version }} make
 
 #- name: Stop nginx if it's running before doing make install
 #  shell: nginx -s stop; sleep 1
@@ -69,14 +73,29 @@
   # TODO swtich this to "service nginx stop" when reliability is good enough
 
 - name: Running make install
-  command: chdir=/usr/local/src/nginx-{{ nginx_version }} make install
+  command: chdir=/usr/local/nginx-{{ nginx_version }} make install
 
-#- name: Destroy the old symlink if it exists
-#  file: path=/usr/sbin/nginx state=absent
-#  when: nginx_symlink_check.stat.exists == true
+#
+# HANDLE SYMLINKX
+#
 
-#- name: Create the symlink
-#  file: src=/usr/local/nginx/sbin/nginx dest=/usr/sbin/nginx state=link
+- name: Destroy the old install dir symlink if it exists
+  file: path=/usr/local/nginx state=absent
+  when: nginx_install_symlink_check.stat.exists == true
+
+- name: Destroy the sbin dir symlink if it exists
+  file: path=/usr/sbin/nginx state=absent
+  when: nginx_sbin_symlink_check.stat.exists == true
+
+- name: Create the install dir symlink
+  file: src=/usr/local/nginx-{{ nginx_version }} dest=/usr/local/nginx state=link
+
+- name: Create the symlink
+  file: src={{ nginx_install_prefix }}/sbin/nginx dest={{ nginx_sbin_path }} state=link
+
+#
+# SET UP LOG DIR
+#
 
 - name: Set up log dir permissions (any existing ones too)
   file: path=/var/log/nginx group=www-data mode="g+w" recurse=yes state=directory
