@@ -37,23 +37,27 @@
 # Run
 #
 
-- name: Download {{ php7_version }}
-  get_url:
-    url: "{{ php7_download_url }}"
-    dest: /usr/local/src/{{ php7_version }}.tar.xz
-  when: php7_file_check.stat.exists == false
+#- name: Download {{ php7_version }}
+#  get_url:
+#    url: "{{ php7_download_url }}"
+#    dest: /usr/local/src/{{ php7_version }}.tar.xz
+#  when: php7_file_check.stat.exists == false
+
+- name: Copy php {{ php7_version }}
+  copy: src={{ deployment_resource_dir }}/php-{{ php7_version }}.tar.gz dest=/usr/local/src/php-{{ php7_version }}.tar.gz
+  when: nginx_file_check.stat.exists == false
 
 - name: Remove extracted PHP if it exists
   file:
-    path: /usr/local/src/{{ php7_version }}
+    path: /usr/local/src/php-{{ php7_version }}
     state: absent
   when: php7_extract_check.stat.exists == true
 
 - name: Extract PHP
   unarchive:
-    src: /usr/local/src/{{ php7_version }}.tar.xz
+    src: /usr/local/src/php-{{ php7_version }}.tar.xz
     dest: /usr/local/src
-    creates: /usr/local/src/{{ php7_version }}
+    creates: /usr/local/src/php-{{ php7_version }}
     copy: no
     owner: root
     group: root
@@ -64,13 +68,13 @@
 - name: Configure
   shell: EXTENSION_DIR={{ php7_extension_dir }} ./configure --prefix={{ php7_install_prefix }} {{ php7_custom_modules }}
   args:
-    chdir: /usr/local/src/{{ php7_version }}
+    chdir: /usr/local/src/php-{{ php7_version }}
 
 - name: "make (WARNING: THIS WILL TAKE A LONG TIME)"
-  command: chdir=/usr/local/src/{{ php7_version }} make
+  command: chdir=/usr/local/src/php-{{ php7_version }} make
 
 - name: make install
-  command: chdir=/usr/local/src/{{ php7_version }} make install
+  command: chdir=/usr/local/src/php-{{ php7_version }} make install
 
 - name: Set up log dir permissions (any existing ones too)
   file: path=/var/log/php7 group=www-data mode="g+w" recurse=yes state=directory
