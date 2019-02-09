@@ -11,7 +11,7 @@ nginx_sbin_path: /usr/sbin/nginx
 nginx_conf_path: /usr/local/nginx/conf/nginx.conf
 nginx_custom_modules: "--with-debug --with-http_ssl_module --with-http_v2_module --with-http_stub_status_module --with-file-aio --with-threads"
 
-php7_version: 7.3.1
+php7_version: 7.3.2
 php7_download_url: http://192.168.0.207/{{ php7_version }}.tar.xz # http://ca1.php.net/get/php-7.3.2.tar.gz/from/this/mirror
 php7_install_prefix: /usr/local/php7
 php7_extension_dir: /usr/local/php7/modules
