@@ -5,18 +5,21 @@
 #
 
 - name: Install necessary packages
-  apt: name={{ item }} state=present
-  with_items:
-    - libssl-dev
-    - libpcre3-dev
-    - zlib1g-dev
+  apt:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - libssl-dev
+      - libpcre3-dev
+      - zlib1g-dev
 
 - name: Check if we've already downloaded nginx
-  stat: path=/usr/local/src/{{ nginx_version }}.tar.gz
+  stat: path=/usr/local/src/nginx-{{ nginx_version }}.tar.gz
   register: nginx_file_check
 
 - name: Check if we've already extracted nginx
-  stat: path=/usr/local/src/{{ nginx_version }}
+  stat: path=/usr/local/src/nginx-{{ nginx_version }}
   register: nginx_extract_check
 
 #- name: Check if symlink exists
@@ -39,15 +42,15 @@
 
 - name: Remove extracted nginx if it exists
   file:
-    path: /usr/local/src/{{ nginx_version }}
+    path: /usr/local/src/nginx-{{ nginx_version }}
     state: absent
   when: nginx_extract_check.stat.exists == true
 
 - name: Extract nginx
   unarchive: 
-    src: /usr/local/src/{{ nginx_version }}.tar.gz
+    src: /usr/local/src/nginx-{{ nginx_version }}.tar.gz
     dest: /usr/local/src
-    creates: /usr/local/src/{{ nginx_version }}
+    creates: /usr/local/src/nginx-{{ nginx_version }}
     copy: no
     owner: root
     group: root
@@ -55,10 +58,10 @@
 - name: Configure
   shell: "./configure --prefix={{ nginx_install_prefix }} --user=nobody --group=www-data --conf-path={{ nginx_conf_path }} --sbin-path={{ nginx_sbin_path }} {{ nginx_custom_modules }}"
   args:
-    chdir: /usr/local/src/{{ nginx_version }}
+    chdir: /usr/local/src/nginx-{{ nginx_version }}
 
 - name: Running make, this might take a bit
-  command: chdir=/usr/local/src/{{ nginx_version }} make
+  command: chdir=/usr/local/src/nginx-{{ nginx_version }} make
 
 #- name: Stop nginx if it's running before doing make install
 #  shell: nginx -s stop; sleep 1
@@ -66,7 +69,7 @@
   # TODO swtich this to "service nginx stop" when reliability is good enough
 
 - name: Running make install
-  command: chdir=/usr/local/src/{{ nginx_version }} make install
+  command: chdir=/usr/local/src/nginx-{{ nginx_version }} make install
 
 #- name: Destroy the old symlink if it exists
 #  file: path=/usr/sbin/nginx state=absent

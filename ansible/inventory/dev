@@ -1,4 +1,5 @@
 # development
+#host_key_checking=false
 
 [development]
 127.0.0.1:22

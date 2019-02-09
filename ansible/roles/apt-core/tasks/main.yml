@@ -7,26 +7,28 @@
 
 - name: Ensure latest list of required packages
   apt:
-    name: "{{ item }}"
+    name: "{{ packages }}"
     state: latest
-  with_items:
-    - cmake
-    - build-essential
-    - pkg-config
-    - libssl-dev
-    - libbz2-dev
-    - unzip
-    - locate
-    - autoconf
-    - apache2-utils
-    - sysstat
-    - ntp
-    - git
-    - g++
-    - vim
-    - screen
-    - libevent-dev
-    - libpcre3-dev
-    - xz-utils
-    - htop
+  vars:
+    packages:
+      - cmake
+      - build-essential
+      - pkg-config
+      - libssl-dev
+      - libbz2-dev
+      - unzip
+      - locate
+      - autoconf
+      - apache2-utils
+      - sysstat
+      - ntp
+      - git
+      - g++
+      - vim
+      - screen
+      - libevent-dev
+      - libpcre3-dev
+      - xz-utils
+      - htop
+      - libzip-dev
 

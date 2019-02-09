@@ -4,8 +4,8 @@ host_key_checking: false # for testing
 deployment_resource_dir: /usr/local/src/ansible-files
 
 # blah
-nginx_version: nginx-1.15.8
-nginx_download_url: http://192.168.0.207/{{ nginx_version }}.tar.gz
+nginx_version: 1.15.8
+nginx_download_url: http://192.168.0.207/nginx-{{ nginx_version }}.tar.gz
 nginx_install_prefix: /usr/local/nginx
 nginx_sbin_path: /usr/sbin/nginx
 nginx_conf_path: /usr/local/nginx/conf/nginx.conf
