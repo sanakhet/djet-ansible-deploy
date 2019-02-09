@@ -11,11 +11,11 @@
     - numactl
 
 - name: Check percona server has been downloaded
-  stat: path=/usr/src/{{ mysql_version }}.tar.gz
+  stat: path=/usr/local/src/{{ mysql_version }}.tar.gz
   register: mysql_file_check
 
 - name: Check if we've already extracted mysql
-  stat: path=/usr/src/{{ mysql_version }}
+  stat: path=/usr/local/src/{{ mysql_version }}
   register: mysql_extract_check
 
 - name: Check if user exists
@@ -33,7 +33,7 @@
 - name: Download mysql
   get_url:
     url: "{{ mysql_download_url }}"
-    dest: "/usr/src/{{ mysql_version }}.tar.gz"
+    dest: "/usr/local/src/{{ mysql_version }}.tar.gz"
   when: mysql_file_check.stat.exists == false
 
 - name: Remove extracted mysql if it exists
@@ -44,7 +44,7 @@
 
 - name: Extract mysql
   unarchive:
-    src: /usr/src/{{ mysql_version }}.tar.gz
+    src: /usr/local/src/{{ mysql_version }}.tar.gz
     dest: /usr/local
     #creates: /usr/local/{{ mysql_version }}
     copy: no

@@ -7,10 +7,10 @@
   become_user: root
 
   roles:
-    #- apt-core
-    #- nginx-install
-    #- nginx-config
-    #- nginx-service
+    - apt-core
+    - nginx-install
+    - nginx-config
+    - nginx-service
 
     #- php7-install
     #- php7-config
@@ -21,6 +21,6 @@
     #- memcached-config
     #- memcached-service
 
-    - mysql-install
-    - mysql-config
-    - mysql-service
+    #- mysql-install
+    #- mysql-config
+    #- mysql-service
