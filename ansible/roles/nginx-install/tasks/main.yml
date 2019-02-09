@@ -56,18 +56,21 @@
     group: root
 
 - name: Configure
-  shell: "./configure --prefix={{ nginx_install_prefix }} --user=nobody --group=www-data --conf-path={{ nginx_conf_path }} --sbin-path={{ nginx_sbin_path }} {{ nginx_custom_modules }}"
+  shell: "./configure --prefix={{ nginx_install_prefix }} --user=nobody --group=www-data --conf-path={{ nginx_conf_path }} {{ nginx_custom_modules }}"
   args:
     chdir: /usr/local/nginx-{{ nginx_version }}
 
 - name: Running make, this might take a bit
   command: chdir=/usr/local/nginx-{{ nginx_version }} make
 
-- name: Stop nginx if it's running before doing make install
-  shell: service nginx stop
-  #shell: nginx -s stop; sleep 1
-  ignore_errors: yes
-  # TODO swtich this to "service nginx stop" when reliability is good enough
+#- name: Stop nginx if it's running before doing make install
+#  service:
+#    name: nginx
+#    state: stopped
+#  #shell: service nginx stop
+#  #shell: nginx -s stop; sleep 1
+#  ignore_errors: yes
+#  # TODO swtich this to "service nginx stop" when reliability is good enough
 
 - name: Running make install
   command: chdir=/usr/local/nginx-{{ nginx_version }} make install
