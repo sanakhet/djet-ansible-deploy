@@ -103,9 +103,11 @@
 - name: Finalize permissions and restrict to mysql
   file:
     path: "{{ mysql_install_prefix }}"
+    state: directory
     owner: root
     group: mysql
     recurse: yes
+    follow: yes
 
 - name: Prepare the mysql config location
   file:
