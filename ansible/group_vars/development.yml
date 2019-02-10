@@ -19,7 +19,7 @@ php7_ini_path: /usr/local/php7/lib/php.ini
 php7_custom_modules: "--with-gd --with-mysqli --with-zlib --enable-inline-optimization --with-gettext --with-pspell --with-curl --enable-mbstring --with-jpeg-dir=/usr/lib --with-freetype-dir=/usr --with-tidy --enable-soap --enable-zip --with-openssl --enable-bcmath --enable-opcache --with-pdo-mysql=mysqlnd --enable-pcntl --enable-fpm --with-libzip"
 php7_pecl_inotify_version: inotify
 php7_pecl_memcached_version: memcached
-php7_pecl_rdkafka_version: rdkafka
+php7_pecl_msgpack_version: msgpack
 
 memcached_version: 1.5.12
 memcached_download_url: http://192.168.0.207/{{ memcached_version }}.tar.gz # https://memcached.org/files/memcached-1.5.12.tar.gz
