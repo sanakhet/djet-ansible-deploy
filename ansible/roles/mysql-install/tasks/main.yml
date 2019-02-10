@@ -25,6 +25,10 @@
   stat: path={{ mysql_install_prefix }}
   register: mysql_symlink_check
 
+- name: Check if data dir exists
+  stat: path={{ mysql_data_dir }}
+  register: mysql_datadir_check
+
 #
 # Install
 #
@@ -90,9 +94,11 @@
 
 - name: Initialize mysql to set up defaults (not for production!!)
   shell: bin/mysqld --initialize-insecure --user=mysql --datadir={{ mysql_data_dir }} --explicit_defaults_for_timestamp chdir={{ mysql_install_prefix }}
+  when: mysql_datadir_check.stat.exists == false
 
 - name: Set up mysql SSL support
   shell: bin/mysql_ssl_rsa_setup --datadir={{ mysql_data_dir }} chdir={{ mysql_install_prefix }}
+  when: mysql_datadir_check.stat.exists == false
 
 - name: Finalize permissions and restrict to mysql
   file:
