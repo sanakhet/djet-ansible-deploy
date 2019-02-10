@@ -5,10 +5,9 @@
 #
 
 - name: Install needed packages for mysql
-  apt: name={{ item }} state=present
-  with_items:
-    - libaio1
-    - numactl
+  apt:
+    name: ['libaio1', 'numactl']
+    state: latest
 
 - name: Check percona server has been downloaded
   stat: path=/usr/local/src/{{ mysql_version }}.tar.gz
