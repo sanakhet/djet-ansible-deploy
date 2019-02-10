@@ -8,19 +8,31 @@
 
   roles:
     - apt-core
-    - nginx-install
-    - nginx-config
-    - nginx-service
 
-    - php7-install
-    - php7-config
-    - php7-fpm-config
-    - php7-fpm-service
+    - role: nginx-install
+      tags: ["nginx"]
+    - role: nginx-config
+      tags: ["nginx"]
+    - role: nginx-service
+      tags: ["nginx"]
 
-    - memcached-install
-    - memcached-config
-    - memcached-service
+    - role: php7-install
+      tags: ["php"]
+    - role: php7-fpm-config
+      tags: ["php"]
+    - role: php7-fpm-service
+      tags: ["php"]
 
-    - mysql-install
-    - mysql-config
-    - mysql-service
+    - role: memcached-install
+      tags: ["memcached"]
+    - role: memcached-config
+      tags: ["memcached"]
+    - role: memcached-service
+      tags: ["memcached"]
+
+    - role: mysql-install
+      tags: ["mysql"]
+    - role: mysql-config
+      tags: ["mysql"]
+    - role: mysql-service
+      tags: ["mysql"]
