@@ -78,3 +78,45 @@
 
 - name: Set up log dir permissions (any existing ones too)
   file: path=/var/log/php7 group=www-data mode="g+w" recurse=yes state=directory
+
+# THIS MUST HAPPEN BEFORE PECL SET UP
+- name: Copy our production php.ini
+  template: src=files/php.ini.j2 dest={{ php7_ini_path }} force=yes
+
+#
+# PECL MODULES
+#
+
+- name: Prepare PECL default extension directory location
+  command: "{{ php7_install_prefix }}/bin/pecl config-set ext_dir {{ php7_extension_dir }}"
+
+- name: Prepare PECL default php ini location
+  command: "{{ php7_install_prefix }}/bin/pecl config-set php_ini {{ php7_ini_path }}"
+
+#- name: PEAR Channel Update pre-module install
+#  command: "{{ php7_install_prefix }}/bin/pear channel-update pear.php.net"
+
+- name: PECL Channel Update pre-module install
+  command: "{{ php7_install_prefix }}/bin/pecl channel-update pecl.php.net"
+
+- name: Install inotify
+  shell: "yes '' | {{ php7_install_prefix }}/bin/pecl install --force {{ php7_pecl_inotify_version }}"
+
+- name: Install memcached
+  shell: "yes '' | {{ php7_install_prefix }}/bin/pecl install --force {{ php7_pecl_memcached_version }}"
+
+- name: Install msgpack
+  shell: "yes '' | {{ php7_install_prefix }}/bin/pecl install --force {{ php7_pecl_msgpack_version }}"
+
+- name: Add the opcache extension to php.ini
+  lineinfile: dest={{ php7_ini_path }} line="zend_extension=opcache.so" insertafter=EOF
+
+- name: Add the inotify extension to php.ini
+  lineinfile: dest={{ php7_ini_path }} line="extension=inotify.so" insertafter=EOF
+
+- name: Add the memcached extension to php.ini
+  lineinfile: dest={{ php7_ini_path }} line="extension=memcached.so" insertafter=EOF
+
+- name: Add the msgpack extension to php.ini
+  lineinfile: dest={{ php7_ini_path }} line="extension=msgpack.so" insertafter=EOF
+

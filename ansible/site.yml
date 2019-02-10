@@ -9,18 +9,19 @@
   roles:
     - apt-core
 
-    - { role: nginx-install, tags: ["nginx"] }
-    - { role: nginx-config, tags: ["nginx"] }
-    - { role: nginx-service, tags: ["nginx"] }
+    - { role: nginx-install, tags: ["nginx", "nginx-install"] }
+    - { role: nginx-config, tags: ["nginx", "nginx-config"] }
+    - { role: nginx-service, tags: ["nginx", "nginx-service"] }
 
-    - { role: php7-install, tags: ["php"] }
-    - { role: php7-fpm-config, tags: ["php"] }
-    - { role: php7-fpm-service, tags: ["php"] }
+    - { role: php7-install, tags: ["php", "php-install"] }
+    - { role: php7-config, tags: ["php", "php-config"] }
+    - { role: php7-fpm-config, tags: ["php", "php-fpm-config"] }
+    - { role: php7-fpm-service, tags: ["php", "php-fpm-service"] }
 
-    - { role: memcached-install, tags: ["memcached"] }
-    - { role: memcached-config, tags: ["memcached"] }
-    - { role: memcached-service, tags: ["memcached"] }
+    - { role: memcached-install, tags: ["memcached", "memcached-install"] }
+    - { role: memcached-config, tags: ["memcached", "memcached-config"] }
+    - { role: memcached-service, tags: ["memcached", "memcached-service"] }
 
-    - { role: mysql-install, tags: ["mysql"] }
-    - { role: mysql-config, tags: ["mysql"] }
-    - { role: mysql-service, tags: ["mysql"] }
+    - { role: mysql-install, tags: ["mysql", "memcached-install"] }
+    - { role: mysql-config, tags: ["mysql", "memcached-config"] }
+    - { role: mysql-service, tags: ["mysql", "memcached-service"] }
