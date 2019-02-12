@@ -22,6 +22,6 @@
     - { role: memcached-config, tags: ["memcached", "memcached-config"] }
     - { role: memcached-service, tags: ["memcached", "memcached-service"] }
 
-    - { role: mysql-install, tags: ["mysql", "memcached-install"] }
-    - { role: mysql-config, tags: ["mysql", "memcached-config"] }
-    - { role: mysql-service, tags: ["mysql", "memcached-service"] }
+    - { role: mysql-install, tags: ["mysql", "mysql-install"] }
+    - { role: mysql-config, tags: ["mysql", "mysql-config"] }
+    - { role: mysql-service, tags: ["mysql", "mysql-service"] }

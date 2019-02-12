@@ -1,0 +1,16 @@
+---
+
+- name: Prepare the mysql config location
+  file:
+    path: /etc/mysql
+    state: directory
+
+- name: Create a default my.cnf
+  file:
+    path: /etc/mysql/my.cnf
+    state: touch
+
+# todo review this task
+- name: Ensure that mysql's log dir exists
+  file: path=/var/log/mysql state=directory mode="u+rwX,g+rwX,o+rwX"
+
