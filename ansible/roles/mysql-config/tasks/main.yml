@@ -12,5 +12,8 @@
 
 # todo review this task
 - name: Ensure that mysql's log dir exists
-  file: path=/var/log/mysql state=directory mode="u+rwX,g+rwX,o+rwX"
+  file:
+    path: /var/log/mysql
+    state: directory
+    mode: "u+rwX,g+rwX,o+rwX"
 

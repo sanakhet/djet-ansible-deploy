@@ -61,7 +61,7 @@
     chdir: /usr/local/nginx-{{ nginx_version }}
 
 - name: Running make, this might take a bit
-  command: chdir=/usr/local/nginx-{{ nginx_version }} make
+  command: chdir=/usr/local/nginx-{{ nginx_version }} make -j
 
 #- name: Stop nginx if it's running before doing make install
 #  service:

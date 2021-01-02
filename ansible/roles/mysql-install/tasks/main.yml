@@ -10,11 +10,13 @@
     state: latest
 
 - name: Check percona server has been downloaded
-  stat: path=/usr/local/src/{{ mysql_version }}.tar.gz
+  stat:
+    path: /usr/local/src/{{ mysql_version }}.tar.gz
   register: mysql_file_check
 
 - name: Check if we've already extracted mysql
-  stat: path=/usr/local/src/{{ mysql_version }}
+  stat:
+    path: /usr/local/src/{{ mysql_version }}
   register: mysql_extract_check
 
 - name: Check if user exists
@@ -22,11 +24,13 @@
   register: mysql_user_check
 
 - name: Check if symlink exists
-  stat: path={{ mysql_install_prefix }}
+  stat:
+    path: "{{ mysql_install_prefix }}"
   register: mysql_symlink_check
 
 - name: Check if data dir exists
-  stat: path={{ mysql_data_dir }}
+  stat:
+    path: "{{ mysql_data_dir }}"
   register: mysql_datadir_check
 
 #
@@ -40,7 +44,9 @@
 #  when: mysql_file_check.stat.exists == false
 
 - name: Copy mysql {{ mysql_version }}
-  copy: src={{ deployment_resource_dir }}/{{ mysql_version }}.tar.gz dest=/usr/local/src/{{ mysql_version }}.tar.gz
+  copy:
+    src: "{{ deployment_resource_dir }}/{{ mysql_version }}.tar.gz"
+    dest: "/usr/local/src/{{ mysql_version }}.tar.gz"
   when: mysql_file_check.stat.exists == false
 
 - name: Remove extracted mysql if it exists
@@ -59,11 +65,16 @@
     group: root
 
 - name: Destroy the old symlink
-  file: path={{ mysql_install_prefix }} state=absent
+  file:
+    path: "{{ mysql_install_prefix }}"
+    state: absent
   when: mysql_symlink_check.stat.exists == true
 
 - name: Create the symlink
-  file: src=/usr/local/{{ mysql_version }} dest={{ mysql_install_prefix }} state=link
+  file:
+    src: "/usr/local/{{ mysql_version }}"
+    dest: "{{ mysql_install_prefix }}"
+    state: link
 
 - name: Create a sandbox user
   shell: adduser --system --no-create-home --disabled-login --disabled-password --group mysql
@@ -90,7 +101,13 @@
 
 
 - name: Set up our data dir
-  file: path={{ mysql_data_dir }} owner=mysql group=mysql mode="g+w" recurse=yes state=directory
+  file:
+    path: "{{ mysql_data_dir }}"
+    owner: mysql
+    group: mysql
+    mode: "g+w"
+    recurse: yes
+    state: directory
 
 - name: Initialize mysql to set up defaults (not for production!!)
   shell: bin/mysqld --initialize-insecure --user=mysql --datadir={{ mysql_data_dir }} --explicit_defaults_for_timestamp chdir={{ mysql_install_prefix }}

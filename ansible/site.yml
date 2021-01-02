@@ -1,7 +1,7 @@
 ---
 
 - hosts: development
-  remote_user: sanakhet
+  remote_user: vagrant
   become: yes
   become_method: sudo
   become_user: root
@@ -13,10 +13,10 @@
     - { role: nginx-config, tags: ["nginx", "nginx-config"] }
     - { role: nginx-service, tags: ["nginx", "nginx-service"] }
 
-    - { role: php7-install, tags: ["php", "php-install"] }
-    - { role: php7-config, tags: ["php", "php-config"] }
-    - { role: php7-fpm-config, tags: ["php", "php-fpm-config"] }
-    - { role: php7-fpm-service, tags: ["php", "php-fpm-service"] }
+    - { role: php-install, tags: ["php", "php-install"] }
+    - { role: php-config, tags: ["php", "php-config"] }
+    - { role: php-fpm-config, tags: ["php", "php-fpm-config"] }
+    - { role: php-fpm-service, tags: ["php", "php-fpm-service"] }
 
     - { role: memcached-install, tags: ["memcached", "memcached-install"] }
     - { role: memcached-config, tags: ["memcached", "memcached-config"] }

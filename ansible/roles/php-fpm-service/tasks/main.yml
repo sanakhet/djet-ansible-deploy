@@ -1,0 +1,13 @@
+---
+
+- name: Copy our php-fpm systemd service config
+  copy:
+    src: files/php-fpm.service
+    dest: /etc/systemd/system/php-fpm.service
+
+- name: Enable php-fpm service
+  systemd:
+    name: php-fpm
+    daemon_reload: yes
+    enabled: yes
+

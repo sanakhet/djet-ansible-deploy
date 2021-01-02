@@ -5,7 +5,8 @@
 #
 
 - name: Check if we've already downloaded memcached
-  stat: path=/usr/local/src/memcached-{{ memcached_version }}.tar.gz
+  stat:
+    path: "/usr/local/src/memcached-{{ memcached_version }}.tar.gz"
   register: memcached_file_check
 
 #
@@ -18,8 +19,10 @@
 #    dest: "/usr/local/src/memcached-{{ memcached_version }}.tar.gz"
 #  when: memcached_file_check.stat.exists == false
 
-- name: Copy php {{ memcached_version }}
-  copy: src={{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz dest=/usr/local/src/memcached-{{ memcached_version }}.tar.gz
+- name: Copy memcached {{ memcached_version }}
+  copy:
+    src: "{{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz"
+    dest: "/usr/local/src/memcached-{{ memcached_version }}.tar.gz"
   when: memcached_file_check.stat.exists == false
 
 - name: Unzip memcached archive
@@ -37,12 +40,16 @@
     chdir: /usr/local/src/memcached-{{ memcached_version }}
 
 - name: memcached make
-  command: chdir=/usr/local/src/memcached-{{ memcached_version }} make
+  command: chdir=/usr/local/src/memcached-{{ memcached_version }} make -j
 
 - name: memcached make install
   command: chdir=/usr/local/src/memcached-{{ memcached_version }} make install
 
 - name: Copy memcached binary to /usr/bin
-  copy: src={{ memcached_install_prefix }}/bin/memcached dest=/usr/bin/memcached force=yes mode=0755
+  copy:
+    src: "{{ memcached_install_prefix }}/bin/memcached"
+    dest: "/usr/bin/memcached"
+    force: yes
+    mode: 0755
 
 

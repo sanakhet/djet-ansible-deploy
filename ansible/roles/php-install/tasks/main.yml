@@ -1,0 +1,111 @@
+---
+
+#
+# Check
+#
+
+- name: Install necessary packages
+  apt:
+    name: "{{ packages }}"
+    state: latest
+  vars:
+    packages:
+      - libbz2-dev
+      - libcrypto++-dev
+      - libcurl4-openssl-dev
+      - libfcgi-dev
+      - libfreetype6-dev
+      - libjpeg-dev
+      - libmcrypt-dev
+      - libmemcached-dev
+      - libpng-dev
+      - libpspell-dev
+      - libreadline-dev
+      - libssl-dev
+      - libtidy-dev
+      - libxml2-dev
+      - autoconf
+      - libzip-dev
+      - libwebp-dev
+      - libonig-dev             # Oniguruma, required by mbstring in 7.4
+      - libsqlite3-dev          # Sqlite3 required by 7.4
+
+- name: Check if we've already downloaded PHP
+  stat:
+    path: "/usr/local/src/{{ php_version }}.tar.xz"
+  register: php_file_check
+
+- name: Check if we've already extracted PHP
+  stat:
+    path: "/usr/local/src/{{ php_version }}"
+  register: php_extract_check
+
+#
+# Run
+#
+
+#- name: Download {{ php_version }}
+#  get_url:
+#    url: "{{ php_download_url }}"
+#    dest: /usr/local/src/{{ php_version }}.tar.xz
+#  when: php_file_check.stat.exists == false
+
+- name: Copy php {{ php_version }}
+  copy:
+    src: "{{ deployment_resource_dir }}/php-{{ php_version }}.tar.xz"
+    dest: "/usr/local/src/php-{{ php_version }}.tar.xz"
+  when: php_file_check.stat.exists == false
+
+- name: Remove extracted PHP if it exists
+  file:
+    path: /usr/local/src/php-{{ php_version }}
+    state: absent
+  when: php_extract_check.stat.exists == true
+
+- name: Extract PHP
+  unarchive:
+    src: /usr/local/src/php-{{ php_version }}.tar.xz
+    dest: /usr/local/src
+    creates: /usr/local/src/php-{{ php_version }}
+    copy: no
+    owner: root
+    group: root
+
+- name: Create the PHP modules directory
+  file:
+    path: "{{ php_extension_dir }}"
+    state: directory
+
+- name: Configure
+  shell: EXTENSION_DIR={{ php_extension_dir }} ./configure --prefix={{ php_install_prefix }} {{ php_custom_modules }}
+  args:
+    chdir: /usr/local/src/php-{{ php_version }}
+
+- name: "make (WARNING: THIS WILL TAKE A LONG TIME)"
+  command: chdir=/usr/local/src/php-{{ php_version }} make -j4
+
+- name: make install
+  command: chdir=/usr/local/src/php-{{ php_version }} make install
+
+- name: Set up log dir permissions (any existing ones too)
+  file:
+    path: /var/log/php
+    group: www-data
+    mode: "g+w"
+    recurse: yes
+    state: directory
+
+- name: Copy the bin scripts into /usr/local/bin for ez usage
+  copy:
+    src: "/usr/local/php/bin/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    remote_src: yes
+    mode: "+x"
+  with_items:
+  - pear
+  - pecl
+  - phar
+  - php-cgi
+  - php-config
+  - php
+  - phpize
