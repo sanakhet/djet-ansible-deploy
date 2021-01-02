@@ -2,6 +2,7 @@
 # defaults
 host_key_checking: false # for testing
 deployment_resource_dir: /usr/local/src/ansible-files
+user_home_dir: /home/vagrant
 
 # blah
 nginx_version: 1.19.6

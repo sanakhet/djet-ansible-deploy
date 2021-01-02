@@ -3,7 +3,7 @@
 # THIS MUST HAPPEN BEFORE PECL SET UP
 - name: Copy our production php.ini
   template:
-    src: files/php.ini.j2
+    src: "php.ini.j2"
     dest: "{{ php_ini_path }}"
     force: yes
 

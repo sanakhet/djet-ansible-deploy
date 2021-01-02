@@ -1,0 +1,37 @@
+# Stripped down ultra basic screenrc inspired by the internet.
+
+# Quick and dirty install:
+#   cp -f djet.screenrc ~/.screenrc
+
+
+# Turn off that annoying start up message
+startup_message off
+
+# Turn the even more annoying whole-screen-flash-on-tab-complete "feature"
+vbell off
+
+# Allow bold colors - necessary for some reason
+attrcolor b ".I"
+
+# Enables use of shift-PgUp and shift-PgDn
+termcapinfo xterm|xterms|xs|rxvt ti@:te@
+
+# Erase background with current bg color
+defbce "on"
+
+# Enable 256 color term
+term xterm-256color
+
+# Cache 30000 lines for scroll back
+defscrollback 30000
+
+# Default to always showing the hardstatus on the last line
+hardstatus alwayslastline
+
+# A basic hardstatus, tabs and time.
+hardstatus string '%{= kG}%-Lw%{= kW}%50> %n%f* %t%{= kG}%+Lw%< %{= kG}%-=%c:%s%{-}'
+
+# Hide hardstatus: ctrl-a f
+bind f eval "hardstatus ignore"
+# Show hardstatus: ctrl-a F
+bind F eval "hardstatus alwayslastline"

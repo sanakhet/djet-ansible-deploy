@@ -8,6 +8,8 @@
 
   roles:
     - apt-core
+    
+    - { role: user-env, tags: ["user-env"] }
 
     - { role: nginx-install, tags: ["nginx", "nginx-install"] }
     - { role: nginx-config, tags: ["nginx", "nginx-config"] }
