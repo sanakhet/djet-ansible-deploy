@@ -5,15 +5,33 @@
     path: /etc/mysql
     state: directory
 
-- name: Create a default my.cnf
-  file:
-    path: /etc/mysql/my.cnf
-    state: touch
-
-# todo review this task
 - name: Ensure that mysql's log dir exists
   file:
     path: /var/log/mysql
     state: directory
     mode: "u+rwX,g+rwX,o+rwX"
+
+- name: Ensure that mysql has a writeable PID dir
+  file:
+    path: /var/run/mysql
+    owner: mysql
+    group: mysql
+    state: directory
+    mode: "u+rwX,g+rwX,o+rwX"
+
+#
+#
+#
+
+- name: Check to see if my.cnf already exists or not
+  stat:
+    path: "{{ mysql_conf_path }}"
+  register: mysql_cnf_file_check
+
+- name: Copy the mysql config file
+  template:
+    src: "my.cnf.j2"
+    dest: "{{ mysql_conf_path }}"
+    force: yes
+  when: mysql_cnf_file_check.stat.exists == false
 
