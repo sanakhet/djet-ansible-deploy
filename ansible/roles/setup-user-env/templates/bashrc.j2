@@ -8,6 +8,12 @@
 alias l="ls -laF"
 
 # A prettier prompt, goes at the end of the .bashrc file
-export PS1="[\[\033[0;36m\w\[\033[0m]\n[\t \u]$ "
+#export PS1="[\[\033[0;36m\w\[\033[0m]\n[\t \u]$ "
+#export PS1="[\w]\n[\t \u]> "
+export PS1="[\e[1;36m\w\e[m]\n[\t \e[1;33m\u\e[1;30m@\h\e[m] -> "
 
-# or [1;34m
+# Some sites for fun:
+# https://www.shellhacks.com/bash-colors/
+# https://www.thegeekstuff.com/2008/09/bash-shell-ps1-10-examples-to-make-your-linux-prompt-like-angelina-jolie/
+# start = \e[0;36m
+# end = \e[m
