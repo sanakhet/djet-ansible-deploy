@@ -1,0 +1,12 @@
+---
+
+#
+# Setup
+#
+
+- name: Create the deployment resource directory if it doesn't exist yet
+  file:
+    path: "{{ deployment_resource_dir }}"
+    state: directory
+
+

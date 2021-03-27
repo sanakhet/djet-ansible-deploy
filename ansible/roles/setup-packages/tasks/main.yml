@@ -1,0 +1,20 @@
+---
+
+- name: Detect the OS version  
+  debug:
+    msg: "Distribution {{ ansible_distribution }} version {{ ansible_distribution_major_version }}"
+
+- name: apt - Update and fix mising
+  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt -y update --fix-missing
+  args:
+    warn: false
+
+- name: apt - Install necessary packages
+  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt install -y cmake build-essential pkg-config libssl-dev apt-transport-https libbz2-dev xz-utils unzip autoconf locate sysstat ntp git g++ spawn-fcgi vim screen curl libevent-dev iptables man-db dnsutils crash webp net-tools
+  args:
+    warn: false
+    
+- name: apt - Install toolkit packages
+  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt install -y locate sysstat net-tools apache2-utils htop ifstat iftop iotop molly-guard speedtest-cli reptyr
+  args:
+    warn: false

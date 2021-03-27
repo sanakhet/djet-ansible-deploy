@@ -32,7 +32,7 @@
 
 - name: Check if we've already downloaded PHP
   stat:
-    path: "/usr/local/src/{{ php_version }}.tar.xz"
+    path: "{{ deployment_resource_dir }}/{{ php_version }}.tar.xz"
   register: php_file_check
 
 - name: Check if we've already extracted PHP
@@ -44,16 +44,17 @@
 # Run
 #
 
-#- name: Download {{ php_version }}
-#  get_url:
-#    url: "{{ php_download_url }}"
-#    dest: /usr/local/src/{{ php_version }}.tar.xz
-#  when: php_file_check.stat.exists == false
+- name: Download PHP {{ php_version }}
+  get_url:
+    url: "{{ php_download_url }}"
+    dest: "{{ deployment_resource_dir }}/php-{{ php_version }}.tar.xz"
+  when: php_file_check.stat.exists == false
 
-- name: Copy php {{ php_version }}
+- name: Copy PHP {{ php_version }}
   copy:
     src: "{{ deployment_resource_dir }}/php-{{ php_version }}.tar.xz"
     dest: "/usr/local/src/php-{{ php_version }}.tar.xz"
+    remote_src: no
   when: php_file_check.stat.exists == false
 
 - name: Remove extracted PHP if it exists
@@ -66,7 +67,7 @@
   unarchive:
     src: /usr/local/src/php-{{ php_version }}.tar.xz
     dest: /usr/local/src
-    creates: /usr/local/src/php-{{ php_version }}
+    #creates: /usr/local/src/php-{{ php_version }}
     copy: no
     owner: root
     group: root
@@ -77,9 +78,9 @@
     state: directory
 
 - name: Configure
-  shell: EXTENSION_DIR={{ php_extension_dir }} ./configure --prefix={{ php_install_prefix }} {{ php_custom_modules }}
+  shell: "EXTENSION_DIR={{ php_extension_dir }} ./configure --prefix={{ php_install_prefix }} {{ php_custom_modules }}"
   args:
-    chdir: /usr/local/src/php-{{ php_version }}
+    chdir: "/usr/local/src/php-{{ php_version }}"
 
 - name: "make (WARNING: THIS WILL TAKE A LONG TIME)"
   command: chdir=/usr/local/src/php-{{ php_version }} make -j4

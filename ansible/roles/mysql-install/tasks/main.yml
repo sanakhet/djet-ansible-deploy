@@ -11,7 +11,7 @@
 
 - name: Check percona server has been downloaded
   stat:
-    path: /usr/local/src/{{ mysql_version }}.tar.gz
+    path: "{{ deployment_resource_dir }}/{{ mysql_version }}.tar.gz"
   register: mysql_file_check
 
 - name: Check if we've already extracted mysql
@@ -37,16 +37,17 @@
 # Install
 #
 
-#- name: Download mysql
-#  get_url:
-#    url: "{{ mysql_download_url }}"
-#    dest: "/usr/local/src/{{ mysql_version }}.tar.gz"
-#  when: mysql_file_check.stat.exists == false
+- name: Download mysql
+  get_url:
+    url: "{{ mysql_download_url }}"
+    dest: "{{ deployment_resource_dir }}/{{ mysql_version }}.tar.gz"
+  when: mysql_file_check.stat.exists == false
 
 - name: Copy mysql {{ mysql_version }}
   copy:
     src: "{{ deployment_resource_dir }}/{{ mysql_version }}.tar.gz"
     dest: "/usr/local/src/{{ mysql_version }}.tar.gz"
+    remote_src: no
   when: mysql_file_check.stat.exists == false
 
 - name: Remove extracted mysql if it exists

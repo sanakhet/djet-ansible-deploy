@@ -6,23 +6,24 @@
 
 - name: Check if we've already downloaded memcached
   stat:
-    path: "/usr/local/src/memcached-{{ memcached_version }}.tar.gz"
+    path: "{{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz"
   register: memcached_file_check
 
 #
 # Install
 #
 
-#- name: Download memcached
-#  get_url:
-#    url: "{{ memcached_download_url }}"
-#    dest: "/usr/local/src/memcached-{{ memcached_version }}.tar.gz"
-#  when: memcached_file_check.stat.exists == false
+- name: Download memcached
+  get_url:
+    url: "{{ memcached_download_url }}"
+    dest: "{{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz"
+  when: memcached_file_check.stat.exists == false
 
 - name: Copy memcached {{ memcached_version }}
   copy:
     src: "{{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz"
     dest: "/usr/local/src/memcached-{{ memcached_version }}.tar.gz"
+    remote_src: no
   when: memcached_file_check.stat.exists == false
 
 - name: Unzip memcached archive
@@ -40,7 +41,7 @@
     chdir: /usr/local/src/memcached-{{ memcached_version }}
 
 - name: memcached make
-  command: chdir=/usr/local/src/memcached-{{ memcached_version }} make -j
+  command: chdir=/usr/local/src/memcached-{{ memcached_version }} make -j4
 
 - name: memcached make install
   command: chdir=/usr/local/src/memcached-{{ memcached_version }} make install

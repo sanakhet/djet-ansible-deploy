@@ -15,42 +15,48 @@
       - zlib1g-dev
 
 - name: Check if we've already downloaded nginx
-  stat: path=/usr/local/src/nginx-{{ nginx_version }}.tar.gz
+  stat:
+    path: "{{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz"
   register: nginx_file_check
 
 - name: Check if we've already extracted nginx
-  stat: path=/usr/local/nginx-{{ nginx_version }}
+  stat:
+    path: "/usr/local/src/nginx-{{ nginx_version }}"
   register: nginx_extract_check
 
 - name: Check if sbin symlink exists
-  stat: path={{ nginx_sbin_path }}
+  stat: 
+    path: "{{ nginx_sbin_path }}"
   register: nginx_sbin_symlink_check
 
 #
 # BUILD NGINX
 #
 
-#- name: Download nginx
-#  get_url:
-#    url: "{{ nginx_download_url }}"
-#    dest: "/usr/local/src/{{ nginx_version }}.tar.gz"
-#  when: nginx_file_check.stat.exists == false
+- name: Download nginx
+  get_url:
+    url: "{{ nginx_download_url }}"
+    dest: "{{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz"
+  when: nginx_file_check.stat.exists == false
 
-- name: Copy nginx {{ nginx_version }}
-  copy: src={{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz dest=/usr/local/src/nginx-{{ nginx_version }}.tar.gz
+- name: Copy nginx {{ nginx_version }} from the deployment files
+  copy:
+    src: "{{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz"
+    dest: "/usr/local/src/nginx-{{ nginx_version }}.tar.gz"
+    remote_src: no
   when: nginx_file_check.stat.exists == false
 
 - name: Remove extracted nginx if it exists
   file:
-    path: /usr/local/nginx-{{ nginx_version }}
+    path: /usr/local/src/nginx-{{ nginx_version }}
     state: absent
   when: nginx_extract_check.stat.exists == true
 
 - name: Extract nginx
   unarchive:
     src: /usr/local/src/nginx-{{ nginx_version }}.tar.gz
-    dest: /usr/local
-    creates: /usr/local/nginx-{{ nginx_version }}
+    dest: /usr/local/src
+    #creates: /usr/local/nginx-{{ nginx_version }}
     copy: no
     owner: root
     group: root
@@ -58,10 +64,10 @@
 - name: Configure
   shell: "./configure --prefix={{ nginx_install_prefix }} --user=nobody --group=www-data --conf-path={{ nginx_conf_path }} {{ nginx_custom_modules }}"
   args:
-    chdir: /usr/local/nginx-{{ nginx_version }}
+    chdir: /usr/local/src/nginx-{{ nginx_version }}
 
 - name: Running make, this might take a bit
-  command: chdir=/usr/local/nginx-{{ nginx_version }} make -j
+  command: chdir=/usr/local/src/nginx-{{ nginx_version }} make -j4
 
 #- name: Stop nginx if it's running before doing make install
 #  service:
@@ -73,24 +79,34 @@
 #  # TODO swtich this to "service nginx stop" when reliability is good enough
 
 - name: Running make install
-  command: chdir=/usr/local/nginx-{{ nginx_version }} make install
+  command: chdir=/usr/local/src/nginx-{{ nginx_version }} make install
 
 #
 # SYMLINKX
 #
 
 - name: Destroy the sbin dir symlink if it exists
-  file: path={{ nginx_sbin_path }} state=absent
+  file:
+    path: "{{ nginx_sbin_path }}"
+    state: absent
   when: nginx_sbin_symlink_check.stat.exists == true
 
 - name: Create the symlink
-  file: src={{ nginx_install_prefix }}/sbin/nginx dest={{ nginx_sbin_path }} state=link
+  file:
+    src: "{{ nginx_install_prefix }}/sbin/nginx"
+    dest: "{{ nginx_sbin_path }}"
+    state: link
 
 #
 # LOGDIR
 #
 
 - name: Set up log dir permissions (any existing ones too)
-  file: path=/var/log/nginx group=www-data mode="g+w" recurse=yes state=directory
+  file:
+    path: "/var/log/nginx"
+    group: www-data
+    mode: "g+w"
+    recurse: yes
+    state: directory
 
 

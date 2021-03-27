@@ -1,15 +1,17 @@
 ---
 
-- hosts: development
-  remote_user: vagrant
+- hosts: localhost
+  connection: local
+  #remote_user: vagrant
   become: yes
   become_method: sudo
   become_user: root
 
   roles:
-    - apt-core
+    - setup-packages
+    - setup-vm
     
-    - { role: user-env, tags: ["user-env"] }
+    - { role: setup-user-env, tags: ["setup-user-env"] }
 
     - { role: nginx-install, tags: ["nginx", "nginx-install"] }
     - { role: nginx-config, tags: ["nginx", "nginx-config"] }

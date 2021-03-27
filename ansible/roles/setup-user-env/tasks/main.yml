@@ -1,0 +1,32 @@
+---
+
+- name: Copy bashrc for user
+  template:
+    src: "bashrc.j2"
+    dest: "{{ user_home_dir }}/.bashrc"
+    force: yes
+
+- name: Copy screenrc user
+  template:
+    src: "screenrc.j2"
+    dest: "{{ user_home_dir }}/.screenrc"
+    force: yes
+
+- name: Copy bashrc for root
+  template:
+    src: "bashrc.j2"
+    dest: "{{ user_home_dir }}/.bashrc"
+    force: yes
+
+- name: Copy screenrc for root
+  template:
+    src: "screenrc.j2"
+    dest: "{{ user_home_dir }}/.screenrc"
+    force: yes
+
+
+- name: Copy vimrc globally
+  template:
+    src: "vimrc.j2"
+    dest: "/etc/vim/vimrc.local"
+    force: yes
