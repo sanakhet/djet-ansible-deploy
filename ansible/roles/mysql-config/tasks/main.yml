@@ -23,15 +23,15 @@
 #
 #
 
-- name: Check to see if my.cnf already exists or not
-  stat:
-    path: "{{ mysql_conf_path }}"
-  register: mysql_cnf_file_check
+#- name: Check to see if my.cnf already exists or not
+#  stat:
+#    path: "{{ mysql_conf_path }}"
+#  register: mysql_cnf_file_check
 
 - name: Copy the mysql config file
   template:
     src: "my.cnf.j2"
     dest: "{{ mysql_conf_path }}"
     force: yes
-  when: mysql_cnf_file_check.stat.exists == false
+#  when: mysql_cnf_file_check.stat.exists == false
 
