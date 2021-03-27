@@ -8,5 +8,5 @@ apt-get --assume-yes update
 apt-get --assume-yes install ansible
 
 # run playbook
-cd ansible && ansible-playbook -i inventory/dev site.yml --ask-pass --ask-become-pass
+cd ansible && ansible-playbook -i inventory/dev site.yml
 
