@@ -29,7 +29,12 @@ defscrollback 30000
 hardstatus alwayslastline
 
 # A basic hardstatus, tabs and time.
-hardstatus string '%{= kG}%-Lw%{= kW}%50> %n%f* %t%{= kG}%+Lw%< %{= kG}%-=%c:%s%{-}'
+#hardstatus string '%{= kG}%-Lw%{= kW}%50> %n%f* %t%{= kG}%+Lw%< %{= kG}%-=%c:%s%{-}'
+hardstatus string "%{= kw} %H %{= kw}|%{-} %-Lw%{= Wk}%n%f %t%{-}%+Lw %=%C%a %Y-%M-%d"
+
+# For fun and play
+# https://www.kilobitspersecond.com/2014/02/10/understanding-gnu-screens-hardstatus-strings/
+# https://www.gnu.org/software/screen/manual/html_node/String-Escapes.html
 
 # Hide hardstatus: ctrl-a f
 bind f eval "hardstatus ignore"
