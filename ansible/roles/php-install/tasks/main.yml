@@ -83,7 +83,7 @@
     chdir: "/usr/local/src/php-{{ php_version }}"
 
 - name: "make (WARNING: THIS WILL TAKE A LONG TIME)"
-  command: chdir=/usr/local/src/php-{{ php_version }} make -j4
+  command: chdir=/usr/local/src/php-{{ php_version }} make -j2
 
 - name: make install
   command: chdir=/usr/local/src/php-{{ php_version }} make install

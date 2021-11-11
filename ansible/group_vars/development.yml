@@ -4,15 +4,16 @@ host_key_checking: false # for testing
 deployment_resource_dir: /usr/local/src/ansible-files
 user_home_dir: /home/vagrant
 
-# blah
-nginx_version: 1.19.8
+# NGINX
+nginx_version: 1.21.4
 nginx_download_url: https://nginx.org/download/nginx-{{ nginx_version }}.tar.gz
 nginx_install_prefix: /usr/local/nginx
 nginx_sbin_path: /usr/sbin/nginx
 nginx_conf_path: /usr/local/nginx/conf/nginx.conf
 nginx_custom_modules: "--with-debug --with-http_ssl_module --with-http_v2_module --with-http_stub_status_module --with-file-aio --with-threads"
 
-php_version: 8.0.3
+# PHP
+php_version: 8.0.12
 php_download_url: https://www.php.net/distributions/php-{{ php_version }}.tar.xz
 php_install_prefix: /usr/local/php
 php_extension_dir: /usr/local/php/modules
@@ -24,15 +25,16 @@ php_pecl_inotify_version: inotify
 php_pecl_memcached_version: memcached
 php_pecl_msgpack_version: msgpack
 
-memcached_version: 1.6.9
+# MEMCACHED
+memcached_version: 1.6.12
 memcached_download_url: http://www.memcached.org/files/memcached-{{ memcached_version }}.tar.gz
 memcached_install_prefix: /usr/local/memcached
 
-# Percona-Server-8.0.22-13-Linux.x86_64.glibc2.17-minimal.tar.gz
-mysql_version: Percona-Server-8.0.22-13-Linux.x86_64.glibc2.17-minimal
-mysql_download_url: https://downloads.percona.com/downloads/Percona-Server-LATEST/Percona-Server-8.0.22-13/binary/tarball/{{ mysql_version }}.tar.gz
+# MYSQL
+mysql_version: Percona-Server-8.0.26-16-Linux.x86_64.glibc2.17-minimal
+mysql_download_url: https://downloads.percona.com/downloads/percona-distribution-mysql-ps/percona-distribution-mysql-ps-8.0.26/binary/tarball/Percona-Server-8.0.26-16-Linux.x86_64.glibc2.17-minimal.tar.gz
 mysql_install_prefix: /usr/local/mysql
-mysql_data_dir: /var/local/mysql/data
+mysql_data_dir: /var/local/mysql-data
 mysql_conf_path: /etc/mysql/my.cnf
 
 
