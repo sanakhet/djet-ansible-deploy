@@ -1,32 +1,52 @@
 ---
 
-- name: Copy bashrc for user
+- name: Copy in base environment files (root)
+  tags: update-screen
   template:
-    src: "bashrc.j2"
-    dest: "{{ user_home_dir }}/.bashrc"
+    src: "files/{{ item }}.j2"
+    dest: "/root/.{{ item }}"
+    owner: root
+    group: root
     force: yes
+  with_items:
+    - bashrc
+    - bash_aliases
+    - screenrc
+    - vimrc
 
-- name: Copy screenrc user
-  template:
-    src: "screenrc.j2"
-    dest: "{{ user_home_dir }}/.screenrc"
-    force: yes
+- name: Touch the bash_devbox file (root)
+  file:
+    path: "/root/.bash_devbox"
+    mode: 0644
+    state: touch
+    owner: root
+    group: root
 
-- name: Copy bashrc for root
+- name: Copy in base environment files ({{ base_user_name }})
+  tags: update-screen
   template:
-    src: "bashrc.j2"
-    dest: "/root/.bashrc"
+    src: "files/{{ item }}.j2"
+    dest: "/home/{{ base_user_name }}/.{{ item }}"
+    owner: "{{ base_user_name }}"
+    group: "{{ base_user_name }}"
     force: yes
+  with_items:
+    - bashrc
+    - bash_aliases
+    - screenrc
+    - vimrc
 
-- name: Copy screenrc for root
-  template:
-    src: "screenrc.j2"
-    dest: "/root/.screenrc"
-    force: yes
+- name: Touch the bash_devbox file ({{ base_user_name }})
+  file:
+    path: "/home/{{ base_user_name }}/.bash_devbox"
+    mode: 0644
+    state: touch
+    owner: "{{ base_user_name }}"
+    group: "{{ base_user_name }}"
 
 
 - name: Copy vimrc globally
   template:
-    src: "vimrc.j2"
+    src: "files/vimrc.j2"
     dest: "/etc/vim/vimrc.local"
     force: yes

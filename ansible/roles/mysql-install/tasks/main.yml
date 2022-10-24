@@ -6,135 +6,180 @@
 
 - name: Install needed packages for mysql
   apt:
-    name: ['libaio1', 'numactl']
+    name: ['libaio1', 'numactl', 'libaio-dev', 'libncurses5-dev']
     state: latest
-
-- name: Check percona server has been downloaded
-  stat:
-    path: "{{ deployment_resource_dir }}/{{ mysql_version }}.tar.gz"
-  register: mysql_file_check
-
-- name: Check if we've already extracted mysql
-  stat:
-    path: /usr/local/src/{{ mysql_version }}
-  register: mysql_extract_check
 
 - name: Check if user exists
   shell: if getent passwd mysql >/dev/null 2>&1; then echo "yes"; else echo "no"; fi
   register: mysql_user_check
 
-- name: Check if symlink exists
-  stat:
-    path: "{{ mysql_install_prefix }}"
-  register: mysql_symlink_check
-
 - name: Check if data dir exists
   stat:
-    path: "{{ mysql_data_dir }}"
+    path: "{{ mysql.data_dir }}"
   register: mysql_datadir_check
 
-#
-# Install
-#
+- name: Check if symlink exists
+  stat:
+    path: "{{ mysql.install_prefix }}"
+  register: mysql_symlink_check
 
-- name: Download mysql
-  get_url:
-    url: "{{ mysql_download_url }}"
-    dest: "{{ deployment_resource_dir }}/{{ mysql_version }}.tar.gz"
-  when: mysql_file_check.stat.exists == false
-
-- name: Copy mysql {{ mysql_version }}
-  copy:
-    src: "{{ deployment_resource_dir }}/{{ mysql_version }}.tar.gz"
-    dest: "/usr/local/src/{{ mysql_version }}.tar.gz"
-    remote_src: no
-  when: mysql_file_check.stat.exists == false
-
-- name: Remove extracted mysql if it exists
+- name: Destroy the old symlink if it exists
   file:
-    path: /usr/local/{{ mysql_version }}
-    state: absent
-  when: mysql_extract_check.stat.exists == true
-
-- name: Extract mysql
-  unarchive:
-    src: /usr/local/src/{{ mysql_version }}.tar.gz
-    dest: /usr/local
-    #creates: /usr/local/{{ mysql_version }}
-    copy: no
-    owner: root
-    group: root
-
-- name: Destroy the old symlink
-  file:
-    path: "{{ mysql_install_prefix }}"
+    path: "{{ mysql.install_prefix }}"
     state: absent
   when: mysql_symlink_check.stat.exists == true
 
-- name: Create the symlink
+- name: Stop mysql service if running before install
+  systemd:
+    name: mysql
+    state: stopped
+  register: service_status_mysql
+  ignore_errors: true
+
+#
+# Deploy: x86
+#
+
+- name: Check Percona-Server-{{ mysql.version_x86 }} has been downloaded
+  stat:
+    path: "/usr/local/src/Percona-Server-{{ mysql.version_x86 }}.tar.gz"
+  register: mysql_file_check
+  when: ansible_architecture == "x86_64"
+
+- name: Check if we've already extracted Percona-Server-{{ mysql.version_x86 }}
+  stat:
+    path: "/usr/local/Percona-Server-{{ mysql.version_x86 }}"
+  register: mysql_extract_check
+  when: ansible_architecture == "x86_64"
+
+- name: Download Percona-Server-{{ mysql.version_x86 }}.tar.gz
+  get_url:
+    url: "{{ mysql.download_url_x86 }}"
+    dest: "/usr/local/src/Percona-Server-{{ mysql.version_x86 }}.tar.gz"
+  when: ansible_architecture == "x86_64" and mysql_file_check.stat.exists == false
+
+- name: Extract Percona-Server-{{ mysql.version_x86 }}.tar.gz
+  unarchive:
+    src: /usr/local/src/Percona-Server-{{ mysql.version_x86 }}.tar.gz
+    dest: /usr/local
+    copy: no
+    owner: root
+    group: root
+  when: ansible_architecture == "x86_64" and mysql_extract_check.stat.exists == false
+
+- name: Create the symlink for x86
   file:
-    src: "/usr/local/{{ mysql_version }}"
-    dest: "{{ mysql_install_prefix }}"
+    src: "/usr/local/Percona-Server-{{ mysql.version_x86 }}"
+    dest: "{{ mysql.install_prefix }}"
     state: link
+  when: ansible_architecture == 'x86_64'
+
+#  
+# Deploy: arm
+#
+
+- name: Check percona-server-{{ mysql.version_arm }} has been downloaded
+  stat:
+    path: "/usr/local/src/percona-server-{{ mysql.version_arm }}.tar.gz"
+  register: mysql_file_check
+  when: ansible_architecture == 'aarch64'
+
+- name: Check if we've already extracted mysql
+  stat:
+    path: "/usr/local/percona-server-{{ mysql.version_arm }}"
+  register: mysql_extract_check
+  when: ansible_architecture == 'aarch64'
+
+- name: Copy percona-server-{{ mysql.version_arm }}.tar.gz
+  get_url:
+    url: "{{ mysql.download_url_arm }}"
+    dest: "/usr/local/src/percona-server-{{ mysql.version_arm }}.tar.gz"
+  when: ansible_architecture == 'aarch64' and mysql_file_check.stat.exists == false
+
+- name: Extract percona-server-{{ mysql.version_arm }}.tar.gz
+  unarchive:
+    src: /usr/local/src/percona-server-{{ mysql.version_arm }}.tar.gz
+    dest: /usr/local
+    copy: no
+    owner: root
+    group: root
+  when: ansible_architecture == 'aarch64' and mysql_extract_check.stat.exists == false
+
+- name: Create the symlink for arm
+  file:
+    src: "/usr/local/percona-server-{{ mysql.version_arm }}"
+    dest: "{{ mysql.install_prefix }}"
+    state: link
+  when: ansible_architecture == 'aarch64'
+
+#  
+# Finish
+#
 
 - name: Create a sandbox user
   shell: adduser --system --no-create-home --disabled-login --disabled-password --group mysql
   when: mysql_user_check.stdout == "no"
 
-- name: Add mysql/bin to the default /etc/profile PATH
-  shell: echo "export PATH=\"{{ mysql_install_prefix }}/bin:\$PATH\"" >> /etc/profile
-
-- name: Add mysql/bin to root PATH in ~/.bashrc
-  shell: echo "export PATH=\"{{ mysql_install_prefix }}/bin:\$PATH\"" >> /root/.bashrc
-
 - name: Add mysql to the current user PATH just in case
-  shell: export PATH="{{ mysql_install_prefix }}/bin:$PATH"
+  shell: export PATH="{{ mysql.install_prefix }}/bin:$PATH"
+  when: mysql_user_check.stdout == "no"
 
+- name: Add mysql/bin to the default /etc/profile PATH
+  lineinfile:
+    dest: "/etc/profile"
+    line: "export PATH=\"{{ mysql.install_prefix }}/bin:$PATH\""
+    insertafter: EOF
 
+- name: Add mysql/bin to vagrant .bash_devbox
+  lineinfile:
+    dest: "/home/{{ base_user_name }}/.bash_devbox"
+    line: "export PATH=\"{{ mysql.install_prefix }}/bin:$PATH\""
+    insertafter: EOF
 
+- name: Add mysql/bin to root .bash_devbox
+  lineinfile:
+    dest: "/root/.bash_devbox"
+    line: "export PATH=\"{{ mysql.install_prefix }}/bin:$PATH\""
+    insertafter: EOF
 
-
-#LEFT OFF - NEED TO REMOVE DATA DIR AS PART OF DEPLOYMENT PROCESS
-
-
-
-
-
-
-- name: Set up our data dir
+- name: Ensure that mysql's log dir exists
   file:
-    path: "{{ mysql_data_dir }}"
+    path: "{{ mysql.log_dir }}"
+    state: directory
+    mode: "u+rwX,g+rwX,o+rwX"
     owner: mysql
     group: mysql
-    mode: "g+w"
-    recurse: yes
-    state: directory
 
-- name: Initialize mysql to set up defaults (not for production!!)
-  shell: bin/mysqld --initialize-insecure --user=mysql --datadir={{ mysql_data_dir }} --explicit_defaults_for_timestamp chdir={{ mysql_install_prefix }}
-  when: mysql_datadir_check.stat.exists == false
-
-- name: Set up mysql SSL support
-  shell: bin/mysql_ssl_rsa_setup --datadir={{ mysql_data_dir }} chdir={{ mysql_install_prefix }}
-  when: mysql_datadir_check.stat.exists == false
-
-- name: Finalize permissions and restrict to mysql
+- name: Ensure that the mysql log file exists
   file:
-    path: "{{ mysql_install_prefix }}"
-    state: directory
-    owner: root
+    path: "{{ mysql.log_dir }}/mysql.log"
+    state: touch
+    mode: "u+rwX,g+rwX,o+rwX"
+    owner: mysql
     group: mysql
-    recurse: yes
-    follow: yes
 
+- name: Ensure that custom our data directory exists
+  file:
+    path: "{{ mysql.data_dir }}"
+    state: directory
+    owner: mysql
+    group: mysql
 
+- name: Touch the mysql binlog / slowlog dir at /var/mysql
+  file:
+    path: /var/mysql
+    state: directory
+    owner: mysql
+    group: mysql
 
+#
+# Restore services if necessary
+#
 
-
-
-
-
-
-
-
+- name: Restart mysql service if running before install
+  systemd:
+    name: mysql
+    state: started
+  ignore_errors: true
+  when: service_status_mysql.failed == false and service_status_mysql.state == 'stopped'
 

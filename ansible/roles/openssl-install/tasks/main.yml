@@ -1,0 +1,71 @@
+---
+
+#
+# Check
+#
+
+- name: Check if we've already downloaded openssl {{ openssl.version }}
+  stat:
+    path: "/usr/local/src/openssl-{{ openssl.version }}.tar.gz"
+  register: openssl_file_check
+
+- name: Check if we've already extracted openssl {{ openssl.version }}
+  stat:
+    path: "/usr/local/src/openssl-{{ openssl.version }}"
+  register: openssl_extract_check
+
+#
+# Deploy
+#
+
+- name: Download openssl {{ openssl.version }}
+  get_url:
+    url: "{{ openssl.download_url }}"
+    dest: "/usr/local/src/openssl-{{ openssl.version }}.tar.gz"
+  when: openssl_file_check.stat.exists == false
+
+- name: Remove extracted openssl {{ openssl.version }} if it exists
+  file:
+    path: "/usr/local/src/openssl-{{ openssl.version }}"
+    state: absent
+  when: openssl_extract_check.stat.exists == true
+
+- name: Extract openssl {{ openssl.version }}
+  unarchive:
+    src: "/usr/local/src/openssl-{{ openssl.version }}.tar.gz"
+    dest: "/usr/local/src"
+    creates: "/usr/local/src/openssl-{{ openssl.version }}"
+    copy: no
+    owner: root
+    group: root
+
+- name: Configure openssl {{ openssl.version }}
+  shell: "./config shared -Wl,-rpath=/usr/local/openssl/lib --prefix={{ openssl.install_prefix }} --openssldir={{ openssl.install_prefix }}"
+  args:
+    chdir: "/usr/local/src/openssl-{{ openssl.version }}"
+
+- name: Running make, this might take a bit
+  shell: "make -j$(nproc)"
+  args:
+    chdir: "/usr/local/src/openssl-{{ openssl.version }}"
+    
+- name: Running make install
+  command: make install
+  args:
+    chdir: "/usr/local/src/openssl-{{ openssl.version }}"
+
+# NOTE: cacert.pem could be handled elsewhere perhaps, but this should be sufficient for now
+
+- name: Copy cacert.pem location 1
+  copy:
+    src: "files/cacert.pem"
+    dest: "/etc/ssl/certs/cacert.pem"
+    force: yes
+    mode: 0644
+
+- name: Copy cacert.pem location 2 (for PHP default_cert_file)
+  copy:
+    src: "files/cacert.pem"
+    dest: "/usr/local/openssl/cert.pem"
+    force: yes
+    mode: 0644

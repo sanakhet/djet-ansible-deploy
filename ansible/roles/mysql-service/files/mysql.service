@@ -5,16 +5,29 @@
 Description=MySQL Database Server
 After=network.target syslog.target
 
-[Service]
-Type=forking
-PIDFile=/run/mysql/mysql.pid
-ExecStart=/usr/local/mysql/bin/mysqld --defaults-file=/etc/mysql/my.cnf --pid-file=/var/run/mysql/mysql.pid --daemonize
-#ExecStart=/usr/local/mysql/bin/mysqld --daemonize --pid-file=/var/run/mysql.pid --basedir=/usr/local/mysql --datadir=/var/local/mysql/data --plugin-dir=/usr/local/mysql/lib/mysql/plugin --user=root --open-files-limit=32768 --socket=/tmp/mysql.sock --port=3306
-Restart=on-failure
-RestartSec=5
-RestartPreventExitStatus=1
-PrivateTmp=false
-
 [Install]
 WantedBy=multi-user.target
 
+[Service]
+User=mysql
+Group=mysql
+Type=forking
+
+# Execute pre and post scripts as root
+PermissionsStartOnly=true
+
+PIDFile=/var/run/mysql.pid
+ExecStart=/usr/local/mysql/bin/mysqld --daemonize --pid-file=/var/run/mysql.pid --basedir=/usr/local/mysql --datadir=/var/local/mysql/data --plugin-dir=/usr/local/mysql/lib/mysql/plugin --user=root --open-files-limit=32768 --socket=/tmp/mysql.sock --port=3306
+Restart=on-failure
+RestartPreventExitStatus=1
+PrivateTmp=false
+
+# Always restart when mysqld exits with exit code of 16. This special exit code
+# is used by mysqld for RESTART SQL.
+RestartForceExitStatus=16
+
+# Set enviroment variable MYSQLD_PARENT_PID. This is required for restart.
+Environment=MYSQLD_PARENT_PID=1
+
+RuntimeDirectory=mysqld
+RuntimeDirectoryMode=755

@@ -1,112 +1,117 @@
 ---
 
+
 #
 # Check
 #
 
-- name: Install necessary packages
-  apt:
-    name: "{{ packages }}"
-    state: latest
-  vars:
-    packages:
-      - libbz2-dev
-      - libcrypto++-dev
-      - libcurl4-openssl-dev
-      - libfcgi-dev
-      - libfreetype6-dev
-      - libjpeg-dev
-      - libmcrypt-dev
-      - libmemcached-dev
-      - libpng-dev
-      - libpspell-dev
-      - libreadline-dev
-      - libssl-dev
-      - libtidy-dev
-      - libxml2-dev
-      - autoconf
-      - libzip-dev
-      - libwebp-dev
-      - libonig-dev             # Oniguruma, required by mbstring in 7.4
-      - libsqlite3-dev          # Sqlite3 required by 7.4
+- name: Check if we've already downloaded PHP {{ php8.version }}
+  stat: path=/usr/local/src/php-{{ php8.version }}.tar.xz
+  register: php8_file_check
 
-- name: Check if we've already downloaded PHP
-  stat:
-    path: "{{ deployment_resource_dir }}/{{ php_version }}.tar.xz"
-  register: php_file_check
+- name: Stop php8-fpm service if running before install
+  systemd:
+    name: php8-fpm
+    state: stopped
+  register: service_status_php8_fpm
+  ignore_errors: true
 
-- name: Check if we've already extracted PHP
+#
+# Extract
+#
+
+# Disabled due to an ansible-php interaction that seems to lead to 503 errors each time we attempt to download?
+#- name: Download php8-{{ php8.version }}.tar.xz
+#  get_url:
+#    url: "{{ php8.download_url }}"
+#    dest: "/usr/local/src/php8-{{ php8.version }}.tar.xz"
+#  when: php8_file_check.stat.exists == false
+
+- name: Copy PHP {{ php8.version }}
+  get_url:
+    url: "{{ php8.download_url }}"
+    dest: "/usr/local/src/php-{{ php8.version }}.tar.xz"
+  when: php8_file_check.stat.exists == false
+
+- name: Check if we've already extracted PHP {{ php8.version }}
   stat:
-    path: "/usr/local/src/{{ php_version }}"
-  register: php_extract_check
+    path: "/usr/local/src/php-{{ php8.version }}"
+  register: php8_extract_check
+
+- name: Remove extracted PHP {{ php8.version }} if it exists
+  file:
+    path: "/usr/local/src/php-{{ php8.version }}"
+    state: absent
+  when: php8_extract_check.stat.exists == true
+
+- name: Extract PHP {{ php8.version }}
+  unarchive:
+    src: "/usr/local/src/php-{{ php8.version }}.tar.xz"
+    dest: "/usr/local/src"
+    creates: "/usr/local/src/php-{{ php8.version }}"
+    copy: no
+    owner: root
+    group: root
+
 
 #
 # Run
 #
 
-- name: Download PHP {{ php_version }}
-  get_url:
-    url: "{{ php_download_url }}"
-    dest: "{{ deployment_resource_dir }}/php-{{ php_version }}.tar.xz"
-  when: php_file_check.stat.exists == false
-
-- name: Copy PHP {{ php_version }}
-  copy:
-    src: "{{ deployment_resource_dir }}/php-{{ php_version }}.tar.xz"
-    dest: "/usr/local/src/php-{{ php_version }}.tar.xz"
-    remote_src: no
-  when: php_file_check.stat.exists == false
-
-- name: Remove extracted PHP if it exists
-  file:
-    path: /usr/local/src/php-{{ php_version }}
-    state: absent
-  when: php_extract_check.stat.exists == true
-
-- name: Extract PHP
-  unarchive:
-    src: /usr/local/src/php-{{ php_version }}.tar.xz
-    dest: /usr/local/src
-    #creates: /usr/local/src/php-{{ php_version }}
-    copy: no
-    owner: root
-    group: root
+- name: Install necessary packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+  vars:
+    packages:
+      - libfcgi-dev
+      - libssl-dev
+      - libcrypto++-dev
+      - libxml2-dev
+      - libpspell-dev
+      - libjpeg-dev
+      - libfreetype6-dev
+      - libmcrypt-dev
+      - libtidy-dev
+      - libmemcached-dev
+      - libpng-dev
+      - libcurl4-openssl-dev
+      - libreadline-dev
+      - libyaml-dev
+      - libwebp-dev
+      - libzip-dev
+      - libonig-dev             # Oniguruma, required by mbstring in 7.4+
+      - libsqlite3-dev          # Sqlite3 required by 7.4+
 
 - name: Create the PHP modules directory
   file:
-    path: "{{ php_extension_dir }}"
+    path: "{{ php8.extension_dir }}"
     state: directory
 
 - name: Configure
-  shell: "EXTENSION_DIR={{ php_extension_dir }} ./configure --prefix={{ php_install_prefix }} {{ php_custom_modules }}"
+  shell: "PKG_CONFIG_PATH={{ curl.install_prefix }}/lib/pkgconfig:{{ openssl.install_prefix }}/lib/pkgconfig EXTENSION_DIR={{ php8.extension_dir }} ./configure --prefix={{ php8.install_prefix }} {{ php8.configure_options }}"
   args:
-    chdir: "/usr/local/src/php-{{ php_version }}"
+    chdir: "/usr/local/src/php-{{ php8.version }}"
 
-- name: "make (WARNING: THIS WILL TAKE A LONG TIME)"
-  command: chdir=/usr/local/src/php-{{ php_version }} make -j2
+- name: "Run make (WARNING: THIS WILL TAKE A LONG TIME)"
+  shell: make -j$(nproc)
+  args:
+    chdir: "/usr/local/src/php-{{ php8.version }}"
 
-- name: make install
-  command: chdir=/usr/local/src/php-{{ php_version }} make install
+- name: Run make install
+  command: make install
+  args:
+    chdir: "/usr/local/src/php-{{ php8.version }}"
 
 - name: Set up log dir permissions (any existing ones too)
-  file:
-    path: /var/log/php
-    group: www-data
-    mode: "g+w"
-    recurse: yes
-    state: directory
+  file: path=/var/log/php8 group=www-data mode="g+w" recurse=yes state=directory
 
-- name: Copy the bin scripts into /usr/local/bin for ez usage
-  copy:
-    src: "/usr/local/php/bin/{{ item }}"
-    dest: "/usr/local/bin/{{ item }}"
-    remote_src: yes
-    mode: "+x"
-  with_items:
-  - pear
-  - pecl
-  - phar
-  - php-cgi
-  - php-config
-  - php
-  - phpize
+- name: Make sure the log file exists
+  file: path=/var/log/php8/php_errors.log group=www-data mode=777 state=touch
+
+- name: Restart php8-fpm service if running before install
+  systemd:
+    name: php8-fpm
+    state: started
+  ignore_errors: true
+  when: service_status_php8_fpm.failed == false and service_status_php8_fpm.state == 'stopped'

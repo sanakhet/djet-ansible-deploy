@@ -4,10 +4,10 @@ After=network.target syslog.target
 
 [Service]
 Type=forking
-PIDFile=/run/nginx.pid
-ExecStart=/usr/local/nginx/sbin/nginx
-ExecReload=/usr/local/nginx/sbin/nginx -s reload
-ExecStop=/usr/local/nginx/sbin/nginx -s quit
+PIDFile=/var/run/nginx.pid
+ExecStart=/usr/local/sbin/nginx
+ExecReload=/usr/local/sbin/nginx -s reload
+ExecStop=/usr/local/sbin/nginx -s quit
 
 [Install]
 WantedBy=multi-user.target

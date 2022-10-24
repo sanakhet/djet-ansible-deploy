@@ -4,53 +4,64 @@
 # Check
 #
 
-- name: Check if we've already downloaded memcached
+- name: Check if we've already downloaded memcached {{ memcached.version }}
   stat:
-    path: "{{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz"
+    path: "/usr/local/src/memcached-{{ memcached.version }}.tar.gz"
   register: memcached_file_check
+
+- name: Stop memcached service if running before install
+  systemd:
+    name: memcached
+    state: stopped
+  register: service_status_memcached
+  ignore_errors: true
+
 
 #
 # Install
 #
 
-- name: Download memcached
+- name: Download memcached {{ memcached.version }}.tar.gz
   get_url:
-    url: "{{ memcached_download_url }}"
-    dest: "{{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz"
+    url: "{{ memcached.download_url }}"
+    dest: "/usr/local/src/memcached-{{ memcached.version }}.tar.gz"
   when: memcached_file_check.stat.exists == false
 
-- name: Copy memcached {{ memcached_version }}
-  copy:
-    src: "{{ deployment_resource_dir }}/memcached-{{ memcached_version }}.tar.gz"
-    dest: "/usr/local/src/memcached-{{ memcached_version }}.tar.gz"
-    remote_src: no
-  when: memcached_file_check.stat.exists == false
-
-- name: Unzip memcached archive
+- name: Unzip memcached {{ memcached.version }}.tar.gz
   unarchive:
-    src: /usr/local/src/memcached-{{ memcached_version }}.tar.gz
+    src: /usr/local/src/memcached-{{ memcached.version }}.tar.gz
     dest: /usr/local/src
-    #creates: /usr/local/src/memcached-{{ memcached_version }}
     copy: no
     owner: root
     group: root
 
-- name: memcached configure
-  shell: ./configure --prefix={{ memcached_install_prefix }}
+- name: Configure memcached {{ memcached.version }}
+  shell: ./configure --prefix={{ memcached.install_prefix }}
   args:
-    chdir: /usr/local/src/memcached-{{ memcached_version }}
+    chdir: /usr/local/src/memcached-{{ memcached.version }}
 
-- name: memcached make
-  command: chdir=/usr/local/src/memcached-{{ memcached_version }} make -j4
+- name: Run memcached make
+  shell: make -j$(nproc)
+  args:
+    chdir: /usr/local/src/memcached-{{ memcached.version }}
 
-- name: memcached make install
-  command: chdir=/usr/local/src/memcached-{{ memcached_version }} make install
+- name: Run memcached make install
+  command: make install
+  args:
+    chdir: /usr/local/src/memcached-{{ memcached.version }}
 
+## copy in ansible defaults to src being the ansible controller to the remote node, we need true since the src is remote
 - name: Copy memcached binary to /usr/bin
-  copy:
-    src: "{{ memcached_install_prefix }}/bin/memcached"
-    dest: "/usr/bin/memcached"
-    force: yes
-    mode: 0755
+  copy: 
+    src: "{{ memcached.install_prefix }}/bin/memcached" 
+    dest: /usr/bin/memcached 
+    force: yes 
+    mode: 0755 
+    remote_src: yes
 
-
+- name: Restart memcached service if running before install
+  systemd:
+    name: memcached
+    state: started
+  ignore_errors: true
+  when: service_status_memcached.failed == false and service_status_memcached.state == 'stopped'

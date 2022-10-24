@@ -192,8 +192,9 @@ engine = On
 short_open_tag = On
 
 ; The number of significant digits displayed in floating point numbers.
+;  -1 means that an enhanced algorithm for rounding such numbers will be used. 
 ; http://php.net/precision
-precision = 14
+precision = -1
 
 ; Output buffering is a mechanism for controlling how much output data
 ; (excluding headers and cookies) PHP should keep internally before pushing that
@@ -295,6 +296,7 @@ unserialize_callback_func =
 ; The value is also used for json_encode when encoding double values.
 ; If -1 is used, then dtoa mode 0 is used which automatically select the best
 ; precision.
+;  -1 means that an enhanced algorithm for rounding such numbers will be used. 
 serialize_precision = -1
 
 ; open_basedir, if set, limits all file operations to the defined directory
@@ -574,7 +576,7 @@ html_errors = On
 ; empty.
 ; http://php.net/error-log
 ; Example:
-error_log = /var/log/php/php_errors.log
+error_log = /var/log/php8/php_errors.log
 ; Log errors to syslog (Event Log on Windows).
 ;error_log = syslog
 
@@ -662,11 +664,11 @@ auto_globals_jit = On
 ; Its value may be 0 to disable the limit. It is ignored if POST data reading
 ; is disabled through enable_post_data_reading.
 ; http://php.net/post-max-size
-post_max_size = 8M
+post_max_size = 100M
 
 ; Automatically add files before PHP document.
 ; http://php.net/auto-prepend-file
-auto_prepend_file =
+;auto_prepend_file = ...
 
 ; Automatically add files after PHP document.
 ; http://php.net/auto-append-file
@@ -815,7 +817,7 @@ file_uploads = On
 
 ; Maximum allowed size for uploaded files.
 ; http://php.net/upload-max-filesize
-upload_max_filesize = 2M
+upload_max_filesize = 100M
 
 ; Maximum number of files that can be uploaded via a single request
 max_file_uploads = 20
@@ -1042,7 +1044,7 @@ smtp_port = 25
 ;mail.force_extra_parameters =
 
 ; Add X-PHP-Originating-Script: that will include uid of the script followed by the filename
-mail.add_x_header = Off
+mail.add_x_header = On
 
 ; The path to a log file that will log all mail() calls. Log entries include
 ; the full path of the script, line number, To address and headers.
@@ -1147,9 +1149,9 @@ mysqli.max_links = -1
 mysqli.cache_size = 2000
 
 ; Default port number for mysqli_connect().  If unset, mysqli_connect() will use
-; the $MYSQL_TCP_PORT or the mysql-tcp entry in /etc/services or the
-; compile-time value defined MYSQL_PORT (in that order).  Win32 will only look
-; at MYSQL_PORT.
+; the $mysql.TCP_PORT or the mysql-tcp entry in /etc/services or the
+; compile-time value defined mysql.PORT (in that order).  Win32 will only look
+; at mysql.PORT.
 ; http://php.net/mysqli.default-port
 mysqli.default_port = 3306
 
@@ -1158,11 +1160,11 @@ mysqli.default_port = 3306
 ; http://php.net/mysqli.default-socket
 mysqli.default_socket =
 
-; Default host for mysql_connect() (doesn't apply in safe mode).
+; Default host for mysql.connect() (doesn't apply in safe mode).
 ; http://php.net/mysqli.default-host
 mysqli.default_host =
 
-; Default user for mysql_connect() (doesn't apply in safe mode).
+; Default user for mysql.connect() (doesn't apply in safe mode).
 ; http://php.net/mysqli.default-user
 mysqli.default_user =
 
@@ -1879,6 +1881,8 @@ opcache.revalidate_freq=1
 ; Prevent name collisions in chroot'ed environment.
 ;opcache.validate_root=0
 
+zend_extension=/usr/local/php8/modules/opcache.so
+
 [curl]
 ; A default value for the CURLOPT_CAINFO option. This is required to be an
 ; absolute path.
@@ -1905,3 +1909,13 @@ opcache.revalidate_freq=1
 ; Local Variables:
 ; tab-width: 4
 ; End:
+
+[memcached]
+; Set the compression type, valid values are: fastlz, zlib. The default is fastlz.
+; Default: fastlz
+; Options: fastlz, zlib
+; This is set to zlib because all of the PHP5.6 instances are still using zlib. It
+; should be changed to fastlz once all servers are php8.
+memcached.compression_type="fastlz"
+
+

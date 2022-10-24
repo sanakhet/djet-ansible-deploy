@@ -2,12 +2,12 @@
 
 - name: Prepare the mysql config location
   file:
-    path: /etc/mysql
+    path: "{{ mysql.conf_dir }}"
     state: directory
 
 - name: Ensure that mysql's log dir exists
   file:
-    path: /var/log/mysql
+    path: "{{ mysql.log_dir }}"
     state: directory
     mode: "u+rwX,g+rwX,o+rwX"
 
@@ -23,15 +23,10 @@
 #
 #
 
-#- name: Check to see if my.cnf already exists or not
-#  stat:
-#    path: "{{ mysql_conf_path }}"
-#  register: mysql_cnf_file_check
-
 - name: Copy the mysql config file
   template:
     src: "my.cnf.j2"
-    dest: "{{ mysql_conf_path }}"
+    dest: "{{ mysql.conf_dir }}/my.cnf"
     force: yes
 #  when: mysql_cnf_file_check.stat.exists == false
 

@@ -14,7 +14,7 @@ Description=memcached daemon
 After=network.target
 
 [Service]
-EnvironmentFile=/usr/local/memcached/memcached.conf
+EnvironmentFile=/etc/memcached.conf
 ExecStart=/usr/bin/memcached -p ${PORT} -u ${USER} -m ${MEMORY_LIMIT_MB} -c ${CONNECTION_LIMIT} $OPTIONS
 
 # Set up a new file system namespace and mounts private /tmp and /var/tmp directories

@@ -1,58 +1,79 @@
 ---
 
-# THIS MUST HAPPEN BEFORE PECL SET UP
 - name: Copy our production php.ini
   template:
-    src: "php.ini.j2"
-    dest: "{{ php_ini_path }}"
+    src: files/php.ini.j2
+    dest: "{{ php8.ini_path }}"
     force: yes
 
-#
-# PECL MODULES
-#
+- name: Create php conf.d directory
+  file:
+    path: "{{ php8.conf_d_dir }}"
+    mode: 777
+    state: directory
 
 - name: Prepare PECL default extension directory location
-  command: "{{ php_install_prefix }}/bin/pecl config-set ext_dir {{ php_extension_dir }}"
+  command: "{{ php8.install_prefix }}/bin/pecl config-set ext_dir {{ php8.extension_dir }}"
 
 - name: Prepare PECL default php ini location
-  command: "{{ php_install_prefix }}/bin/pecl config-set php_ini {{ php_ini_path }}"
-
-#- name: PEAR Channel Update pre-module install
-#  command: "{{ php_install_prefix }}/bin/pear channel-update pear.php.net"
+  command: "{{ php8.install_prefix }}/bin/pecl config-set php_ini {{ php8.ini_path }}"
 
 - name: PECL Channel Update pre-module install
-  command: "{{ php_install_prefix }}/bin/pecl channel-update pecl.php.net"
+  command: "{{ php8.install_prefix }}/bin/pecl channel-update pecl.php.net"
 
-- name: Install inotify
-  shell: "yes '' | {{ php_install_prefix }}/bin/pecl install --force {{ php_pecl_inotify_version }}"
+- name: "Install {{ php8.pecl_inotify_version }}"
+  shell: "yes '' | {{ php8.install_prefix }}/bin/pecl install --force {{ php8.pecl_inotify_version }}"
 
-- name: Install memcached
-  shell: "yes '' | {{ php_install_prefix }}/bin/pecl install --force {{ php_pecl_memcached_version }}"
+- name: "Install {{ php8.pecl_memcached_version }}"
+  shell: "yes '' | {{ php8.install_prefix }}/bin/pecl install --force {{ php8.pecl_memcached_version }}"
 
-- name: Install msgpack
-  shell: "yes '' | {{ php_install_prefix }}/bin/pecl install --force {{ php_pecl_msgpack_version }}"
+- name: "Install {{ php8.pecl_msgpack_version }}"
+  shell: "yes '' | {{ php8.install_prefix }}/bin/pecl install --force {{ php8.pecl_msgpack_version }}"
 
-- name: Add the opcache extension to php.ini
-  lineinfile:
-    dest: "{{ php_ini_path }}"
-    line: "zend_extension=opcache.so"
+# Create symlinks to php8 so that we can use php8 from the command line
+- name: Remove old symlinks/files
+  file: path="/usr/local/bin/{{ item }}" state=absent
+  with_items:
+    - php
+    - php-config
+    - php-cgi
+    - phpize
+    - pecl
+    - pear
+    - peardev
+    - phpdbg
+    - phar
+  ignore_errors: true
+
+- name: Create the symlinks (except phar)
+  file: src="{{ php8.install_prefix }}/bin/{{ item }}" dest="/usr/local/bin/{{ item }}" state=link
+  with_items:
+    - php
+    - php-config
+    - php-cgi
+    - phpize
+    - pecl
+    - pear
+    - peardev
+    - phpdbg
+
+- name: Create the phar symlink (slightly different from the rest)
+  file: src="{{ php8.install_prefix }}/bin/phar.phar" dest="/usr/local/bin/phar" state=link
+
+
+## Update the php.ini file with all the recently installed extentions
+- name: Update the php.ini file with all the added extentions
+  blockinfile:
+    path: "{{ php8.ini_path }}"
     insertafter: EOF
+    marker: ""
+    block: |
+      ; Enable inotify
+      extension={{ php8.extension_dir }}/inotify.so
 
-- name: Add the inotify extension to php.ini
-  lineinfile:
-    dest: "{{ php_ini_path }}"
-    line: "extension=inotify.so"
-    insertafter: EOF
+      ; Endable memcached
+      extension={{ php8.extension_dir }}/memcached.so
 
-- name: Add the memcached extension to php.ini
-  lineinfile:
-    dest: "{{ php_ini_path }}"
-    line: "extension=memcached.so"
-    insertafter: EOF
-
-- name: Add the msgpack extension to php.ini
-  lineinfile:
-    dest: "{{ php_ini_path }}"
-    line: "extension=msgpack.so"
-    insertafter: EOF
+      ; Enable msgpack
+      extension={{ php8.extension_dir }}/msgpack.so
 

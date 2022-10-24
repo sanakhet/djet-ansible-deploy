@@ -1,0 +1,13 @@
+---
+
+- name: Copy /etc/ntp.conf
+  copy:
+    src: "files/ntp.conf"
+    dest: "/etc/ntp.conf"
+    force: yes
+    mode: 0644
+    
+- name: Restarting ntp
+  systemd:
+    name: ntp
+    state: restarted

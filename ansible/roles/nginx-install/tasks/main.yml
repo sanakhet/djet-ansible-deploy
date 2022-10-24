@@ -1,105 +1,112 @@
 ---
 
 #
-# SETUP
+# Check
 #
 
 - name: Install necessary packages
-  apt:
-    name: "{{ packages }}"
-    state: latest
+  apt: 
+    name: "{{ packages }}" 
+    state: present
   vars:
     packages:
-      - libssl-dev
-      - libpcre3-dev
-      - zlib1g-dev
+    - libssl-dev
+    - libpcre3-dev
+    - zlib1g-dev
 
 - name: Check if we've already downloaded nginx
-  stat:
-    path: "{{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz"
+  stat: path=/usr/local/src/nginx-{{ nginx.version }}.tar.gz
   register: nginx_file_check
 
 - name: Check if we've already extracted nginx
-  stat:
-    path: "/usr/local/src/nginx-{{ nginx_version }}"
+  stat: path=/usr/local/src/nginx-{{ nginx.version }}
   register: nginx_extract_check
 
-- name: Check if sbin symlink exists
-  stat: 
-    path: "{{ nginx_sbin_path }}"
-  register: nginx_sbin_symlink_check
+- name: Check if symlink exists
+  stat: path={{ nginx.sbin_path }}
+  register: nginx_symlink_check
+
+- name: Stop nginx service if running before install
+  systemd:
+    name: nginx
+    state: stopped
+  register: service_status_nginx
+  ignore_errors: true
 
 #
-# BUILD NGINX
+# Deploy
 #
 
-- name: Download nginx
-  get_url:
-    url: "{{ nginx_download_url }}"
-    dest: "{{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz"
-  when: nginx_file_check.stat.exists == false
+#- name: Download nginx
+#  get_url:
+#    url: "{{ nginx.download_url }}"
+#    dest: "/usr/local/src/nginx-{{ nginx.version }}.tar.gz"
+#  when: nginx_file_check.stat.exists == false
 
-- name: Copy nginx {{ nginx_version }} from the deployment files
+- name: Ensure that config directory exists
+  file:
+    path: "{{ nginx.conf_path }}"
+    state: directory
+    owner: nobody
+    group: www-data
+
+# - name: Generate a large Diffie-Hellman prime with default size (4096 bits) - WILL TAKE A LONG TIME IF NOT PRESENT YET
+#   openssl_dhparam:
+#     path: /etc/nginx/dhparam.pem 
+
+- name: Copy a already generated large Diffie-Hellman prime with default size (4096 bits) Much faster than creating it each time
   copy:
-    src: "{{ deployment_resource_dir }}/nginx-{{ nginx_version }}.tar.gz"
-    dest: "/usr/local/src/nginx-{{ nginx_version }}.tar.gz"
-    remote_src: no
+    src: "files/dhparam.pem"
+    dest: "/etc/nginx/dhparam.pem"
+    force: yes
+  
+- name: Download nginx-{{ nginx.version }}.tar.gz
+  get_url:
+    url: "{{ nginx.download_url }}"
+    dest: "/usr/local/src/nginx-{{ nginx.version }}.tar.gz"
   when: nginx_file_check.stat.exists == false
 
 - name: Remove extracted nginx if it exists
   file:
-    path: /usr/local/src/nginx-{{ nginx_version }}
+    path: /usr/local/src/nginx-{{ nginx.version }}
     state: absent
   when: nginx_extract_check.stat.exists == true
 
 - name: Extract nginx
-  unarchive:
-    src: /usr/local/src/nginx-{{ nginx_version }}.tar.gz
+  unarchive: 
+    src: /usr/local/src/nginx-{{ nginx.version }}.tar.gz
     dest: /usr/local/src
-    #creates: /usr/local/nginx-{{ nginx_version }}
+    creates: /usr/local/src/nginx-{{ nginx.version }}
     copy: no
     owner: root
     group: root
 
 - name: Configure
-  shell: "./configure --prefix={{ nginx_install_prefix }} --user=nobody --group=www-data --conf-path={{ nginx_conf_path }} {{ nginx_custom_modules }}"
+  shell: "./configure --prefix={{ nginx.install_prefix }} --conf-path={{ nginx.conf_path }}/nginx.conf --with-openssl=/usr/local/src/openssl-{{ openssl.version }} {{ nginx.configure_options }}"
   args:
-    chdir: /usr/local/src/nginx-{{ nginx_version }}
+    chdir: /usr/local/src/nginx-{{ nginx.version }}
 
 - name: Running make, this might take a bit
-  command: chdir=/usr/local/src/nginx-{{ nginx_version }} make -j4
-
-#- name: Stop nginx if it's running before doing make install
-#  service:
-#    name: nginx
-#    state: stopped
-#  #shell: service nginx stop
-#  #shell: nginx -s stop; sleep 1
-#  ignore_errors: yes
-#  # TODO swtich this to "service nginx stop" when reliability is good enough
+  shell: make -j$(nproc)
+  args:
+    chdir: "/usr/local/src/nginx-{{ nginx.version }}"
 
 - name: Running make install
-  command: chdir=/usr/local/src/nginx-{{ nginx_version }} make install
+  command: make install
+  args:
+    chdir: "/usr/local/src/nginx-{{ nginx.version }}"
 
-#
-# SYMLINKX
-#
-
-- name: Destroy the sbin dir symlink if it exists
+- name: Destroy the old symlink if it exists
   file:
-    path: "{{ nginx_sbin_path }}"
+    path: "{{ nginx.sbin_path }}"
     state: absent
-  when: nginx_sbin_symlink_check.stat.exists == true
+  when: nginx_symlink_check.stat.exists == true
 
 - name: Create the symlink
   file:
-    src: "{{ nginx_install_prefix }}/sbin/nginx"
-    dest: "{{ nginx_sbin_path }}"
+    src: "{{ nginx.install_prefix }}/sbin/nginx"
+    dest: "{{ nginx.sbin_path }}"
     state: link
-
-#
-# LOGDIR
-#
 
 - name: Set up log dir permissions (any existing ones too)
   file:
@@ -109,4 +116,9 @@
     recurse: yes
     state: directory
 
-
+- name: Restart nginx service if running before install
+  systemd:
+    name: nginx
+    state: started
+  ignore_errors: true
+  when: service_status_nginx.failed == false and service_status_nginx.state == 'stopped'

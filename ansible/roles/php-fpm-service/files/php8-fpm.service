@@ -1,0 +1,14 @@
+[Unit]
+Description=PHP-FPM Application Manager (php8)
+
+[Service]
+Type=forking
+PIDFile=/usr/local/php8/var/run/php-fpm.pid
+ExecStart=/usr/local/php8/sbin/php-fpm --daemonize --fpm-config /usr/local/php8/etc/php-fpm.conf --pid=/usr/local/php8/var/run/php-fpm.pid
+ExecReload=/bin/kill -USR2 $MAINPID
+KillMode=process
+KillSignal=SIGQUIT
+
+[Install]
+WantedBy=multi-user.target
+

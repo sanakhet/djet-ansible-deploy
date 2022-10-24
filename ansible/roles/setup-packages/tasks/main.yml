@@ -1,20 +1,48 @@
 ---
 
-- name: Detect the OS version  
-  debug:
-    msg: "Distribution {{ ansible_distribution }} version {{ ansible_distribution_major_version }}"
-
-- name: apt - Update and fix mising
-  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt -y update --fix-missing
+- name: Apt update and fix mising packages
+  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt-get -y update --fix-missing
   args:
     warn: false
 
-- name: apt - Install necessary packages
-  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt install -y cmake build-essential pkg-config libssl-dev apt-transport-https libbz2-dev xz-utils unzip autoconf locate sysstat ntp git g++ spawn-fcgi vim screen curl libevent-dev iptables man-db dnsutils crash webp net-tools
+- name: Apt install necessary packages
+  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt-get install -y cmake build-essential pkg-config libssl-dev apt-transport-https libbz2-dev unzip autoconf locate sysstat ntp git g++ spawn-fcgi vim screen curl libevent-dev iptables man-db dnsutils crash zip gzip tar vlan rasdaemon webp
   args:
     warn: false
-    
-- name: apt - Install toolkit packages
-  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt install -y locate sysstat net-tools apache2-utils htop ifstat iftop iotop molly-guard speedtest-cli reptyr
+
+- name: Apt install nice-to-have packages
+  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt-get install -y apache2-utils htop ifstat iftop iotop molly-guard speedtest-cli colordiff net-tools
   args:
     warn: false
+
+#
+# Unattended Upgrades -- Security ONLY
+#
+
+- name: Install unattended-upgrades
+  raw: export DEBIAN_FRONTEND=noninteractive && yes '' | apt-get -y install unattended-upgrades
+  args:
+    warn: false
+
+- name: Copy our unattended upgrades config
+  template:
+    src: "files/apt.50unattended-upgrades.j2"
+    dest: "/etc/apt/apt.conf.d/50unattended-upgrades"
+    mode: 0644
+
+- name: Copy our apt periodic config
+  template:
+    src: "files/apt.10periodic.j2"
+    dest: "/etc/apt/apt.conf.d/10periodic"
+    mode: 0644
+
+- name: Copy our apt auto upgrades config
+  template:
+    src: "files/apt.20auto-upgrades.j2"
+    dest: "/etc/apt/apt.conf.d/20auto-upgrades"
+    mode: 0644
+
+- name: Manually run unattended upgrades to update security packages
+  shell: 'unattended-upgrade -d > /var/log/unattended-upgrades/unattended-upgrades-manual-run.log'
+  ignore_errors: true
+

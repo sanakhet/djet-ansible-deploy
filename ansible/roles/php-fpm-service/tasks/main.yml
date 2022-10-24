@@ -1,13 +1,14 @@
 ---
 
-- name: Copy our php-fpm systemd service config
+- name: Copy our php8-fpm systemd service config
   copy:
-    src: files/php-fpm.service
-    dest: /etc/systemd/system/php-fpm.service
+    src: files/php8-fpm.service
+    dest: /etc/systemd/system/php8-fpm.service
 
-- name: Enable php-fpm service
+- name: Enable php8-fpm service
   systemd:
-    name: php-fpm
+    name: php8-fpm
     daemon_reload: yes
     enabled: yes
+    state: started
 

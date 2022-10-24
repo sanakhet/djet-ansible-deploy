@@ -1,0 +1,12 @@
+---
+
+- name: Add a composer update script
+  template:
+    src: files/composer-update.sh
+    dest: "{{ composer.update_script_file }}"
+    mode: 0755
+    force: yes
+
+- name: Run composer update script to install composer
+  shell: "{{ composer.update_script_file }}"
+

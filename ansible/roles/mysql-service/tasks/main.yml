@@ -1,5 +1,12 @@
 ---
 
+# ln -s /usr/local/mysql/bin/my_print_defaults  /usr/bin/my_print_defaults
+# - name: Create link to my_print_defaults, otherwise sudo /etc/init.d/mysql will not work
+#   file:
+#     src: "{{ mysql.install_prefix }}/bin/my_print_defaults"
+#     dest: /usr/bin/my_print_defaults
+#     state: link
+
 - name: Copy our mysql systemd service config
   copy:
     src: files/mysql.service
@@ -10,5 +17,3 @@
     name: mysql
     daemon_reload: yes
     enabled: yes
-
-

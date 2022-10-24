@@ -1,0 +1,19 @@
+
+# some more ls aliases
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -alh'
+
+alias x="exit"
+alias ..="cd .."
+
+alias sudo='sudo '
+
+# Basis logging aliases.
+alias phplog='sudo tail -n 50 -F /var/log/php7/php_errors.log'
+alias nginxlog='sudo tail -n 50 -F /var/log/nginx/error.log'
+alias mysqllog='sudo tail -n 50 -F /var/log/mysql/mysql.log'
+
+# Network debugging - quick traceroute
+# Usage: mtrq HOSTNAME
+alias mtrq="sudo mtr -rw -c 60 -i 1"

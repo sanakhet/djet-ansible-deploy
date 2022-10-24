@@ -8,11 +8,19 @@
   become_user: root
 
   roles:
-    - setup-packages
-    - setup-vm
+    - { role: setup-always, tags: ["always"] }
     
+    - { role: setup-packages, tags: ["setup-packages"] }
     - { role: setup-user-env, tags: ["setup-user-env"] }
 
+    - { role: ntp-install, tags: [ 'ntp', 'ntp-install' ] }
+    - { role: openssl-install, tags: ["openssl", "openssl-install"] }
+    - { role: curl-install, tags: ["curl", "curl-install"] }
+
+    - { role: memcached-install, tags: ["memcached", "memcached-install"] }
+    - { role: memcached-config, tags: ["memcached", "memcached-config"] }
+    - { role: memcached-service, tags: ["memcached", "memcached-service"] }
+    
     - { role: nginx-install, tags: ["nginx", "nginx-install"] }
     - { role: nginx-config, tags: ["nginx", "nginx-config"] }
     - { role: nginx-service, tags: ["nginx", "nginx-service"] }
@@ -21,10 +29,7 @@
     - { role: php-config, tags: ["php", "php-config"] }
     - { role: php-fpm-config, tags: ["php", "php-fpm-config"] }
     - { role: php-fpm-service, tags: ["php", "php-fpm-service"] }
-
-    - { role: memcached-install, tags: ["memcached", "memcached-install"] }
-    - { role: memcached-config, tags: ["memcached", "memcached-config"] }
-    - { role: memcached-service, tags: ["memcached", "memcached-service"] }
+    - { role: php-composer-install, tags: [ 'php', 'composer' ] }
 
     - { role: mysql-install, tags: ["mysql", "mysql-install"] }
     - { role: mysql-config, tags: ["mysql", "mysql-config"] }

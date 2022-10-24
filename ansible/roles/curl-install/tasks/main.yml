@@ -1,0 +1,58 @@
+---
+
+# Source:
+# https://curl.se/download.html
+
+#
+# Check
+#
+
+- name: Check if we've already downloaded curl {{ curl.version }}
+  stat:
+    path: "/usr/local/src/curl-{{ curl.version }}.tar.gz"
+  register: curl_file_check
+
+- name: Check if we've already extracted curl {{ curl.version }}
+  stat:
+    path: "/usr/local/src/curl-{{ curl.version }}"
+  register: curl_extract_check
+
+#
+# Deploy
+#
+
+- name: Download curl {{ curl.version }}
+  get_url:
+    url: "{{ curl.download_url }}"
+    dest: "/usr/local/src/curl-{{ curl.version }}.tar.gz"
+  when: curl_file_check.stat.exists == false
+
+- name: Remove extracted curl if it exists
+  file:
+    path: "/usr/local/src/curl-{{ curl.version }}"
+    state: absent
+  when: curl_extract_check.stat.exists == true
+
+- name: Extract curl {{ curl.version }}
+  unarchive:
+    src: "/usr/local/src/curl-{{ curl.version }}.tar.gz"
+    dest: "/usr/local/src"
+    creates: "/usr/local/src/curl-{{ curl.version }}"
+    remote_src: yes
+    owner: root
+    group: root
+
+- name: Configure curl {{ curl.version }}
+  shell: "./configure --enable-shared --prefix={{ curl.install_prefix }} --with-openssl=/usr/local/src/openssl-{{ openssl.version }}"
+  args:
+    chdir: "/usr/local/src/curl-{{ curl.version }}"
+
+- name: Running make, this might take a bit
+  shell: "make -j$(nproc)"
+  args:
+    chdir: "/usr/local/src/curl-{{ curl.version }}"
+
+- name: Running make install
+  command: make install
+  args:
+    chdir: "/usr/local/src/curl-{{ curl.version }}"

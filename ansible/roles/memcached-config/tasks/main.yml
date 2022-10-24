@@ -1,5 +1,7 @@
 ---
 
-- name: Copy the memcached config
-  template: src=files/memcached.conf.j2 dest={{ memcached_install_prefix }}/memcached.conf force=yes
-
+- name: Copy the memcached config onto VM
+  template: 
+    src: files/memcached.conf.j2 
+    dest: "/etc/memcached.conf" 
+    force: yes
